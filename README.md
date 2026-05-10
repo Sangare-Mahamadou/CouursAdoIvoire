@@ -41,13 +41,6 @@ L'application permet aux parents de rechercher un enseignant, d'envoyer une dema
 - Statistiques générales de la plateforme.
 - Suppression ou bannissement d'utilisateurs.
 
-Accès admin local par défaut :
-
-```text
-Identifiant : 0000000000
-Mot de passe : sangmah
-```
-
 ## Technologies
 
 ### Frontend
@@ -138,13 +131,6 @@ Il crée les tables :
 - `teachers_profile`
 - `contracts`
 
-Au démarrage du backend, un compte administrateur local est préparé automatiquement avec :
-
-```text
-Téléphone : 0000000000
-Mot de passe : sangmah
-```
-
 ## Lancement en développement
 
 Depuis la racine du projet :
@@ -214,9 +200,6 @@ Prévisualise le build frontend.
 ## Notes de sécurité
 
 - Les contacts entre parent et enseignant restent masqués tant que le contrat n'est pas accepté.
-- Les mots de passe sont hachés avec bcrypt.
-- Les routes privées utilisent un token JWT.
-- Le fichier `backend/.env` doit rester local et ne doit pas être poussé sur GitHub.
 
 ## Vérification du projet
 
