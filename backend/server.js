@@ -2,29 +2,47 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-// Initialisation de Express
+const pool = require('./config/db');
+
 const app = express();
 
-// Middlewares
-app.use(cors()); // Pour autoriser React à faire des requêtes
-app.use(express.json()); // Pour lire le JSON envoyé par le Front-end
+app.use(cors());
+app.use(express.json());
 
-// Routes du Backend
 const authRoutes = require('./routes/auth.routes');
 const teacherRoutes = require('./routes/teacher.routes');
 const contractRoutes = require('./routes/contract.routes');
+const adminRoutes = require('./routes/admin.routes');
+const userRoutes = require('./routes/user.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api/contracts', contractRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/users', userRoutes);
 
-// Route par défaut (Test)
 app.get('/', (req, res) => {
-    res.send('API EduCoursCI en ligne !');
+    res.send('API AlloProf CI en ligne !');
 });
 
-// Démarrage du serveur
+const ensureDefaultAdmin = async () => {
+    try {
+        await pool.query(`
+            INSERT INTO users (name, email, phone, city, password_hash, role)
+            VALUES ('Administrateur', 'admin@alloprof.ci', '0000000000', 'Admin', '$2b$10$MoSARlQC9hjQYpg9AjUM2uTHlArymaB25.dLwHV3pzvCAyvfk9tMy', 'admin')
+            ON CONFLICT (phone) DO UPDATE SET
+                email = EXCLUDED.email,
+                password_hash = EXCLUDED.password_hash,
+                role = 'admin'
+        `);
+        console.log('Compte administrateur prêt : 0000000000 / sangmah');
+    } catch (error) {
+        console.error("Erreur initialisation admin:", error.message);
+    }
+};
+
 const PORT = process.env.PORT || 5000;
+ensureDefaultAdmin();
 app.listen(PORT, () => {
-    console.log(`🚀 Serveur démarré sur le port ${PORT}`);
+    console.log(`Serveur démarré sur le port ${PORT}`);
 });

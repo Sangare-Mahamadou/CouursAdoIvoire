@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import DashboardParent from './pages/DashboardParent';
 import DashboardTeacher from './pages/DashboardTeacher';
+import DashboardAdmin from './pages/DashboardAdmin';
 import './App.css';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard/parent" element={<DashboardParent />} />
           <Route path="/dashboard/teacher" element={<DashboardTeacher />} />
+          <Route path="/dashboard/admin" element={<DashboardAdmin />} />
         </Routes>
       </main>
       <Footer />

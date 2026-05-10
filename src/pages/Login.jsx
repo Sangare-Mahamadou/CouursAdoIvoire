@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../services/api';
 
 export default function Login() {
-  const [phone, setPhone] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -15,9 +15,11 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const data = await loginUser({ phone, password });
+      const data = await loginUser({ identifier, password });
       // Redirection après succès
-      if (data.user.role === 'parent') {
+      if (data.user.role === 'admin') {
+        navigate('/dashboard/admin');
+      } else if (data.user.role === 'parent') {
         navigate('/dashboard/parent');
       } else {
         navigate('/dashboard/teacher');
@@ -42,13 +44,13 @@ export default function Login() {
 
         <form onSubmit={handleLogin}>
           <div className="form-group">
-            <label>N° de téléphone (Côte d'Ivoire)</label>
+            <label>E-mail ou N° de téléphone</label>
             <input 
               type="text" 
-              placeholder="+225 00 00 00 00 00" 
+              placeholder="votre@email.com ou +225..." 
               required 
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
             />
           </div>
           <div className="form-group">

@@ -12,4 +12,7 @@ router.post('/', authMiddleware, contractController.createContract);
 // PATCH /api/contracts/:id - Professeur modifie le statut (accepter/refuser)
 router.patch('/:id', authMiddleware, contractController.updateContractStatus);
 
+// POST /api/contracts/:id/rate - Parent note l'enseignant
+router.post('/:id/rate', authMiddleware, contractController.rateTeacher);
+
 module.exports = router;

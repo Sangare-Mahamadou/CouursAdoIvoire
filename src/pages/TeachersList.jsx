@@ -26,7 +26,7 @@ export default function TeachersList() {
     const matchDiploma = filterDiploma ? teacher.diplomaId === filterDiploma : true;
     
     const matchSearch = teacher.subjects && teacher.subjects.length > 0 
-      ? teacher.subjects.some(sub => sub.toLowerCase().includes(searchTerm.toLowerCase())) || 
+      ? teacher.subjects.some(sub => sub.name && sub.name.toLowerCase().includes(searchTerm.toLowerCase())) || 
         (teacher.city && teacher.city.toLowerCase().includes(searchTerm.toLowerCase()))
       : (teacher.city && teacher.city.toLowerCase().includes(searchTerm.toLowerCase()));
 
@@ -57,7 +57,7 @@ export default function TeachersList() {
           <select value={filterDiploma} onChange={(e) => setFilterDiploma(e.target.value)}>
             <option value="">Tous les niveaux</option>
             {diplomas.map(d => (
-              <option key={d.id} value={d.id}>{d.label} ({d.hourlyRate} FCFA/h)</option>
+              <option key={d.id} value={d.id}>{d.label}</option>
             ))}
           </select>
         </div>

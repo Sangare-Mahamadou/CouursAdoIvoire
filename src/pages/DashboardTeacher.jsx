@@ -1,34 +1,35 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getContracts, updateContractStatus } from '../services/api';
+import ProfileEditor from '../components/ProfileEditor';
 
 export default function DashboardTeacher() {
   const [contracts, setContracts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [profileData, setProfileData] = useState({ estimatedRevenue: 0, hoursTotal: 0 });
+  const [profileData, setProfileData] = useState({ estimatedRevenue: 0 });
+  const [expandedContract, setExpandedContract] = useState(null);
 
-  useEffect(() => {
-    fetchContracts();
-  }, []);
-
-  const fetchContracts = () => {
+  const fetchContracts = useCallback(() => {
     getContracts()
       .then(data => {
         setContracts(data);
         
-        // Calcul du revenu et des heures seulement pour les contrats acceptés
+        // Calcul du revenu mensuel seulement pour les contrats acceptés
         const activeContracts = data.filter(c => c.status === 'active');
-        // Revenu mensuel estimé = Tarif horaire * heures_hebdo * nombre d'enfants * 4 semaines
-        const rev = activeContracts.reduce((acc, curr) => acc + (curr.hourly_rate * curr.hours_per_week * curr.children_count * 4), 0); 
-        const hrs = activeContracts.reduce((acc, curr) => acc + curr.hours_per_week, 0); 
+        // Revenu mensuel estimé = Tarif mensuel * nombre d'enfants
+        const rev = activeContracts.reduce((acc, curr) => acc + (curr.hourly_rate * curr.children_count), 0); 
         
-        setProfileData({ estimatedRevenue: rev, hoursTotal: hrs });
+        setProfileData({ estimatedRevenue: rev });
         setIsLoading(false);
       })
       .catch(err => {
         console.error(err);
         setIsLoading(false);
       });
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchContracts();
+  }, [fetchContracts]);
 
   const handleStatusChange = async (id, newStatus) => {
      try {
@@ -42,15 +43,13 @@ export default function DashboardTeacher() {
   return (
     <div className="container dashboard-layout animate-fade-in">
       <h1 className="page-title">Espace Enseignant - Tableau de bord</h1>
+
+      <ProfileEditor />
       
-      <div className="grid grid-cols-2" style={{ marginBottom: '2rem' }}>
+      <div className="grid grid-cols-1" style={{ marginBottom: '2rem' }}>
          <div className="card text-center glass">
             <h3 style={{ color: 'var(--color-text-light)', fontSize: '1rem' }}>Revenus estimés (Mois)</h3>
             <p className="text-gradient" style={{ fontSize: '2.5rem', fontWeight: '800', marginTop: '0.5rem' }}>{profileData.estimatedRevenue} FCFA</p>
-         </div>
-         <div className="card text-center glass">
-            <h3 style={{ color: 'var(--color-text-light)', fontSize: '1rem' }}>Heures dispensées / Semaine</h3>
-            <p style={{ fontSize: '2.5rem', fontWeight: '800', marginTop: '0.5rem', color: 'var(--color-secondary)' }}>{profileData.hoursTotal}h</p>
          </div>
       </div>
 
@@ -60,11 +59,11 @@ export default function DashboardTeacher() {
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
-                <th style={{ padding: '1rem', color: 'var(--color-text-light)' }}>Parent (Téléphone)</th>
+                <th style={{ padding: '1rem', color: 'var(--color-text-light)' }}>Parent & Contact</th>
                 <th style={{ padding: '1rem', color: 'var(--color-text-light)' }}>Nb. Enfants</th>
                 <th style={{ padding: '1rem', color: 'var(--color-text-light)' }}>Classe</th>
                 <th style={{ padding: '1rem', color: 'var(--color-text-light)' }}>Matière</th>
-                <th style={{ padding: '1rem', color: 'var(--color-text-light)' }}>Heures / sem</th>
+                <th style={{ padding: '1rem', color: 'var(--color-text-light)' }}>Total / Mois</th>
                 <th style={{ padding: '1rem', color: 'var(--color-text-light)' }}>Statut</th>
                 <th style={{ padding: '1rem', color: 'var(--color-text-light)' }}>Action</th>
               </tr>
@@ -76,14 +75,22 @@ export default function DashboardTeacher() {
                   <tr><td colSpan="7" style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-light)' }}>Vous n'avez aucune demande pour le moment.</td></tr>
               ) : (
                 contracts.map(contract => (
-                  <tr key={contract.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                  <tr key={contract.id} style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: expandedContract === contract.id ? '#f8fafc' : 'transparent' }}>
                     <td style={{ padding: '1rem', fontWeight: '500' }}>
-                        {contract.parent_name} <br/> <a href={`tel:${contract.parent_phone}`} style={{ fontSize: '0.8rem', color: 'var(--color-primary)', textDecoration: 'none'}}>{contract.parent_phone}</a>
+                        {contract.parent_name} <br/> 
+                        {contract.parent_phone === 'Masqué' ? (
+                          <span style={{ fontSize: '0.8rem', color: 'var(--color-text-light)', fontStyle: 'italic' }}>Contacts Masqués</span>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', marginTop: '0.2rem' }}>
+                            <a href={`tel:${contract.parent_phone}`} style={{ fontSize: '0.8rem', color: 'var(--color-primary)', textDecoration: 'none'}}>{contract.parent_phone}</a>
+                            <a href={`mailto:${contract.parent_email}`} style={{ fontSize: '0.8rem', color: 'var(--color-text-light)', textDecoration: 'none'}}>{contract.parent_email}</a>
+                          </div>
+                        )}
                     </td>
                     <td style={{ padding: '1rem' }}>{contract.children_count} enfant(s)</td>
                     <td style={{ padding: '1rem' }}>{contract.class_level}</td>
                     <td style={{ padding: '1rem' }}>{contract.subject}</td>
-                    <td style={{ padding: '1rem' }}>{contract.hours_per_week}h</td>
+                    <td style={{ padding: '1rem', fontWeight: 'bold' }}>{contract.hourly_rate * contract.children_count} FCFA</td>
                     <td style={{ padding: '1rem' }}>
                       <span className="badge" style={{ backgroundColor: contract.status === 'active' ? 'var(--color-secondary-light)' : (contract.status === 'rejected' ? '#fee2e2' : '#fef3c7'), color: contract.status === 'active' ? 'var(--color-secondary-dark)' : (contract.status === 'rejected' ? '#b91c1c' : '#b45309') }}>
                         {contract.status === 'active' ? 'En cours' : (contract.status === 'rejected' ? 'Refusée' : 'Nouvelle demande')}
@@ -91,16 +98,53 @@ export default function DashboardTeacher() {
                     </td>
                     <td style={{ padding: '1rem' }}>
                       {contract.status === 'pending' ? (
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <button onClick={() => handleStatusChange(contract.id, 'active')} className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.875rem' }}>Accepter</button>
-                          <button onClick={() => handleStatusChange(contract.id, 'rejected')} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.875rem', borderColor: '#ef4444', color: '#ef4444' }}>Refuser</button>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          <button onClick={() => setExpandedContract(expandedContract === contract.id ? null : contract.id)} className="btn btn-outline" style={{ padding: '0.3rem', fontSize: '0.8rem' }}>
+                            {expandedContract === contract.id ? 'Masquer Contrat' : 'Voir Contrat'}
+                          </button>
                         </div>
                       ) : (
                         <span style={{ fontSize: '0.875rem', color: 'var(--color-text-light)' }}>Traitée</span>
                       )}
                     </td>
                   </tr>
-                ))
+                )).flatMap((row, index) => {
+                  const contract = contracts[index];
+                  const rows = [row];
+                  if (expandedContract === contract.id && contract.status === 'pending') {
+                    rows.push(
+                      <tr key={`contract-${contract.id}`} style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid var(--color-border)' }}>
+                        <td colSpan="7" style={{ padding: '1.5rem' }}>
+                          <div style={{ backgroundColor: 'white', border: '1px solid #cbd5e1', padding: '1.5rem', borderRadius: 'var(--radius-md)', fontSize: '0.9rem', color: '#334155', lineHeight: '1.6' }}>
+                             <h3 style={{ color: 'var(--color-primary-dark)', marginBottom: '1rem', textAlign: 'center', borderBottom: '1px solid #cbd5e1', paddingBottom: '0.5rem' }}>CONTRAT D'ENGAGEMENT PROPOSÉ</h3>
+                             <p>Entre les soussignés :</p>
+                             <p><strong>Le Parent :</strong> {contract.parent_name}</p>
+                             <p><strong>L'Enseignant :</strong> Vous-même</p>
+                             <p style={{ marginTop: '1rem' }}>
+                               Il est convenu ce qui suit : Vous dispenserez des cours de soutien en <strong>{contract.subject}</strong> pour <strong>{contract.children_count}</strong> enfant(s) de niveau <strong>{contract.class_level}</strong>.
+                             </p>
+                             <p style={{ marginTop: '0.5rem' }}>
+                               La rémunération mensuelle totale est fixée à <strong>{contract.hourly_rate * contract.children_count} FCFA</strong>.
+                             </p>
+                             <div style={{ marginTop: '1.5rem', padding: '1rem', backgroundColor: '#fee2e2', borderRadius: 'var(--radius-sm)', border: '1px solid #f87171' }}>
+                               <p style={{ fontWeight: 'bold', color: '#b91c1c', marginBottom: '0.5rem' }}>⚠️ Clauses strictes de la plateforme :</p>
+                               <ul style={{ paddingLeft: '1.5rem', margin: 0, color: '#991b1b' }}>
+                                 <li>Ce contrat ne peut être révoqué qu'après un mois d'engagement.</li>
+                                 <li>Toute personne ne respectant pas ce contrat sera suspendue de la plateforme pendant un mois.</li>
+                               </ul>
+                             </div>
+                             
+                             <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                                <button onClick={() => handleStatusChange(contract.id, 'active')} className="btn btn-primary" style={{ padding: '0.5rem 1.5rem' }}>Accepter le contrat</button>
+                                <button onClick={() => handleStatusChange(contract.id, 'rejected')} className="btn btn-outline" style={{ padding: '0.5rem 1.5rem', borderColor: '#ef4444', color: '#ef4444' }}>Refuser</button>
+                             </div>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
+                  return rows;
+                })
               )}
             </tbody>
           </table>

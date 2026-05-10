@@ -12,7 +12,7 @@ export default function Home() {
         </p>
         <div className="hero-buttons">
           <Link to="/teachers" className="btn btn-primary">
-            <Search size={18} /> Rechercher un professeur
+            <Search size={18} /> Rechercher un enseignant
           </Link>
           <Link to="/register" className="btn btn-outline">
             <GraduationCap size={18} /> Devenir enseignant
@@ -21,14 +21,14 @@ export default function Home() {
       </section>
 
       <section className="container" style={{ padding: '4rem 1.5rem', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-md)', marginBottom: '4rem' }}>
-        <h2 style={{ textAlign: 'center', margin: '0 0 3rem 0', fontSize: '2rem' }}>Pourquoi choisir EduCoursCI ?</h2>
+        <h2 style={{ textAlign: 'center', margin: '0 0 3rem 0', fontSize: '2rem' }}>Pourquoi choisir AlloProf CI ?</h2>
         <div className="grid grid-cols-3">
           <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '1rem' }}>
             <div style={{ padding: '1rem', backgroundColor: 'var(--color-primary-light)', borderRadius: '50%' }}>
               <CheckCircle size={32} color="var(--color-primary)" />
             </div>
             <h3>Enseignants Qualifiés</h3>
-            <p style={{ color: 'var(--color-text-light)' }}>De BAC à Doctorat, choisissez le professeur au niveau adapté à vos besoins spécifiques.</p>
+            <p style={{ color: 'var(--color-text-light)' }}>De BAC à Doctorat, choisissez l'enseignant au niveau adapté à vos besoins spécifiques.</p>
           </div>
           <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '1rem' }}>
             <div style={{ padding: '1rem', backgroundColor: 'var(--color-secondary-light)', borderRadius: '50%' }}>

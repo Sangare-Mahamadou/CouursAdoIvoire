@@ -16,7 +16,7 @@ export default function Navbar() {
       <div className="container nav-container">
         <Link to="/" className="nav-logo">
           <BookOpen className="logo-icon" />
-          <span>EduCours<span className="text-primary">CI</span></span>
+          <span>AlloProf <span className="text-primary">CI</span></span>
         </Link>
         <div className="nav-links">
           <Link to="/teachers" className="nav-link">Trouver un enseignant</Link>
@@ -24,7 +24,7 @@ export default function Navbar() {
           {user ? (
             <>
               <Link to={`/dashboard/${user.role}`} className="btn btn-primary">
-                Mon Espace ({user.name.split(' ')[0]})
+                {user.role === 'admin' ? 'Panneau Admin' : `Mon Espace (${user.name.split(' ')[0]})`}
               </Link>
               <button onClick={handleLogout} className="btn btn-outline" style={{ padding: '0.4rem', border: 'none', color: 'var(--color-primary)' }}>
                 <LogOut size={20} />
@@ -32,7 +32,7 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Link to="/login" className="btn btn-outline">Espace Membre</Link>
+              <Link to="/login" className="btn btn-outline">Se connecter</Link>
               <Link to="/register" className="btn btn-primary">Créer un compte</Link>
             </>
           )}

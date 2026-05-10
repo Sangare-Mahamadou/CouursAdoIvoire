@@ -15,7 +15,7 @@ module.exports = (req, res, next) => {
         // Ajouter les infos de l'utilisateur (id, role, name) à la requête
         req.user = verified;
         next(); // Passer à l'étape suivante (le contrôleur)
-    } catch (err) {
+    } catch {
         res.status(401).json({ message: "Token invalide." });
     }
 };

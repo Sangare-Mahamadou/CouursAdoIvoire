@@ -1,11 +1,16 @@
 const API_URL = 'http://localhost:5000/api';
 
 export const registerUser = async (userData) => {
-    const response = await fetch(`${API_URL}/auth/register`, {
+    const isFormData = userData instanceof FormData;
+    const options = {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData)
-    });
+        body: isFormData ? userData : JSON.stringify(userData)
+    };
+    if (!isFormData) {
+        options.headers = { 'Content-Type': 'application/json' };
+    }
+    
+    const response = await fetch(`${API_URL}/auth/register`, options);
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur lors de l'inscription");
     return data;
@@ -33,7 +38,12 @@ export const logoutUser = () => {
 
 export const getCurrentUser = () => {
     const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+    try {
+        return userStr ? JSON.parse(userStr) : null;
+    } catch {
+        localStorage.removeItem('user');
+        return null;
+    }
 };
 
 export const getTeachers = async () => {
@@ -80,5 +90,50 @@ export const updateContractStatus = async (contractId, status) => {
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur de mise à jour");
+    return data;
+};
+
+export const rateContract = async (contractId, rating) => {
+    const response = await fetch(`${API_URL}/contracts/${contractId}/rate`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ rating })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur lors de la notation");
+    return data;
+};
+
+export const updateProfile = async (profileData) => {
+    const isFormData = profileData instanceof FormData;
+    const headers = isFormData
+        ? { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        : getAuthHeaders();
+
+    const response = await fetch(`${API_URL}/users/profile`, {
+        method: 'PUT',
+        headers,
+        body: isFormData ? profileData : JSON.stringify(profileData)
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur de mise à jour du profil");
+    return data;
+};
+
+export const getAllAdminContracts = async () => {
+    const response = await fetch(`${API_URL}/admin/contracts`, {
+        headers: getAuthHeaders(),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur lors de la récupération des contrats");
+    return data;
+};
+
+export const getProfile = async () => {
+    const response = await fetch(`${API_URL}/users/profile`, {
+        headers: getAuthHeaders(),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur récupération du profil");
     return data;
 };
