@@ -3,9 +3,9 @@ const pool = require('../config/db');
 exports.getAllTeachers = async (req, res) => {
     try {
         const { rows: teachers } = await pool.query(`
-            SELECT u.id, u.name, u.phone, u.city, 
-                   tp.diploma_level as diplomaId, 
-                   tp.subjects, tp.description, tp.rating, tp.reviews_count as reviewsCount,
+            SELECT u.id, u.name, u.phone, u.city,
+                   tp.diploma_level as "diploma",
+                   tp.subjects, tp.description, tp.rating, tp.reviews_count as "reviewsCount",
                    tp.profile_picture_url
             FROM users u
             JOIN teachers_profile tp ON u.id = tp.user_id

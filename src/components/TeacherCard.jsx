@@ -5,8 +5,7 @@ import { diplomas } from '../data/mockData';
 
 export default function TeacherCard({ teacher }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const diplomaObj = diplomas.find(d => d.id === teacher.diplomaId);
-  const diplomaLabel = diplomaObj ? diplomaObj.label : (teacher.diplomaId ? teacher.diplomaId.toUpperCase() : 'Non défini');
+  const diplomaLabel = teacher.diploma || 'Non défini';
 
   return (
     <>

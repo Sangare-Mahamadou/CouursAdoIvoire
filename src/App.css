@@ -74,6 +74,14 @@
   background-color: var(--color-secondary-dark);
 }
 
+.btn-danger {
+  background-color: #dc2626;
+  color: white;
+}
+.btn-danger:hover {
+  background-color: #b91c1c;
+}
+
 .btn-outline {
   background-color: transparent;
   border: 1px solid var(--color-border);
@@ -135,14 +143,107 @@
 .auth-container { max-width: 500px; margin: 4rem auto; }
 .auth-card { padding: 2.5rem; }
 
-.feedback {
-  padding: 0.75rem;
+.app-alert {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 1rem;
   border-radius: var(--radius-md);
   margin-bottom: 1rem;
-  font-size: 0.875rem;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
 }
-.feedback.success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
-.feedback.error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+.app-alert strong {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+.app-alert p {
+  margin: 0;
+  color: inherit;
+}
+.app-alert-icon {
+  margin-top: 0.1rem;
+  flex-shrink: 0;
+}
+.app-alert-success {
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: #86efac;
+}
+.app-alert-error {
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+.app-alert-info {
+  background: #eff6ff;
+  color: #1e40af;
+  border-color: #bfdbfe;
+}
+.app-alert-warning {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #fcd34d;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.modal-panel {
+  width: min(100%, 520px);
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.confirm-dialog {
+  width: min(100%, 440px);
+  background: var(--color-surface);
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.reviews-section {
+  padding: 4rem 1.5rem;
+  margin-bottom: 4rem;
+}
+
+.review-form {
+  display: grid;
+  gap: 1rem;
+  max-width: 720px;
+  margin: 0 auto 2rem;
+}
+
+.reviews-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.review-card {
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.review-card p {
+  color: var(--color-text-light);
+}
 
 .profile-grid {
   display: grid;
