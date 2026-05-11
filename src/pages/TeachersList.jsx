@@ -63,7 +63,7 @@ export default function TeachersList() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {isLoading ? (
           <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: 'var(--color-text-light)' }}>
             Chargement des enseignants depuis MySQL...
