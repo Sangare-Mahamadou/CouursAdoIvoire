@@ -137,3 +137,6 @@ export const getProfile = async () => {
     if (!response.ok) throw new Error(data.message || "Erreur récupération du profil");
     return data;
 };
+
+export const getTeacherById = (id) => api.get(`/teachers/${id}`).then(res => res.data);
+export const getTeacherReviews = (teacherId) => api.get(`/teachers/${teacherId}/reviews`).then(res => res.data);

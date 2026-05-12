@@ -1,11 +1,29 @@
 import { useState } from 'react';
-import { MapPin, Star } from 'lucide-react';
+import { MapPin, Star, MessageSquare } from 'lucide-react';
 import BookingModal from './BookingModal';
+import ReviewModal from './ReviewModal';
 import { diplomas } from '../data/mockData';
+import { getCurrentUser } from '../services/api';
+import toast from 'react-hot-toast';
+import { Link } from 'react-router-dom';
 
-export default function TeacherCard({ teacher }) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const diplomaLabel = teacher.diploma || 'Non défini';
+export default function TeacherCard({ teacher, onReviewAdded }) {
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  
+  const diplomaObj = diplomas.find(d => d.id === teacher.diploma_level);
+  const diplomaLabel = diplomaObj ? diplomaObj.label : 'Non défini';
+
+  const handleContactClick = () => {
+    const user = getCurrentUser();
+    if (!user) {
+      toast.error("Veuillez vous connecter pour contacter un enseignant.");
+    } else if (user.role !== 'parent') {
+      toast.error("Seul un parent d'élève peut contacter un enseignant.");
+    } else {
+      setIsBookingModalOpen(true);
+    }
+  };
 
   return (
     <>
@@ -18,7 +36,11 @@ export default function TeacherCard({ teacher }) {
                style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--color-primary)' }} 
             />
             <div style={{ flex: 1 }}>
-              <h3 className="teacher-name">{teacher.firstName} {teacher.lastName}</h3>
+              <h3 className="teacher-name">
+                <Link to={`/teacher/${teacher.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                  {teacher.firstName} {teacher.lastName}
+                </Link>
+              </h3>
               <p className="teacher-city"><MapPin size={14} /> {teacher.city}</p>
             </div>
             <span className="badge">Niveau : {diplomaLabel}</span>
@@ -39,17 +61,21 @@ export default function TeacherCard({ teacher }) {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem', fontSize: '0.875rem' }}>
             <Star size={16} color="#f59e0b" fill="#f59e0b" />
-            <span style={{ fontWeight: '600' }}>Note : {teacher.rating || '5.0'}/5</span>
+            <span style={{ fontWeight: '600' }}>Note : {Number(teacher.rating || 5.0).toFixed(1)}/5</span>
             <span style={{ color: 'var(--color-text-light)' }}>({teacher.reviewsCount || 0} avis parents)</span>
           </div>
         </div>
 
-        <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1rem', marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-          <button className="btn btn-secondary" onClick={() => setIsModalOpen(true)}>Contacter</button>
+        <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1rem', marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '1rem' }}>
+          <button className="btn btn-outline" onClick={() => setIsReviewModalOpen(true)}>
+             <MessageSquare size={16} /> Avis
+          </button>
+          <button className="btn btn-secondary" onClick={handleContactClick}>Contacter</button>
         </div>
       </div>
 
-      {isModalOpen && <BookingModal teacher={teacher} onClose={() => setIsModalOpen(false)} />}
+      {isBookingModalOpen && <BookingModal teacher={teacher} onClose={() => setIsBookingModalOpen(false)} />}
+      {isReviewModalOpen && <ReviewModal teacher={teacher} onClose={() => setIsReviewModalOpen(false)} onReviewAdded={onReviewAdded} />}
     </>
   );
 }

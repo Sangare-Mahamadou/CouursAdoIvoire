@@ -1,7 +1,7 @@
 -- Suppression des tables existantes pour repartir à zéro (à retirer en prod)
 DROP TABLE IF EXISTS contracts CASCADE;
 DROP TABLE IF EXISTS teachers_profile CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS users;
 
 -- Table des utilisateurs (Parents, Enseignants, Admin)
 CREATE TABLE IF NOT EXISTS users (
@@ -42,6 +42,19 @@ CREATE TABLE IF NOT EXISTS contracts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (parent_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Table des avis (laissés par les parents sur les enseignants)
+CREATE TABLE IF NOT EXISTS reviews (
+    id SERIAL PRIMARY KEY,
+    teacher_id INT NOT NULL,
+    author_id INT NOT NULL,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE (teacher_id, author_id) -- Un parent ne peut laisser qu'un seul avis par enseignant
 );
 
 -- Créer l'admin par défaut (mot de passe: sangmah)

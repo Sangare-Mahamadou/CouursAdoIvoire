@@ -155,20 +155,56 @@ exports.rateTeacher = async (req, res) => {
         }
 
         const teacherId = contracts[0].teacher_id;
+        
+        // La logique de notation est maintenant gérée par les avis (addReview)
+        // On marque juste le contrat comme terminé
         await pool.query("UPDATE contracts SET status = 'completed' WHERE id = $1", [contractId]);
-        await pool.query(`
-            UPDATE teachers_profile
-            SET rating = CASE
-                            WHEN reviews_count = 0 THEN $1
-                            ELSE ROUND(((rating * reviews_count) + $1) / (reviews_count + 1), 1)
-                         END,
-                reviews_count = reviews_count + 1
-            WHERE user_id = $2
-        `, [rating, teacherId]);
 
-        res.json({ message: "Note attribuée avec succès." });
+        res.json({ message: "Contrat marqué comme terminé." });
     } catch (error) {
         console.error("Erreur notation:", error);
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+};
+
+exports.addReview = async (req, res) => {
+    try {
+        const teacherId = req.params.id;
+        const { rating, comment } = req.body;
+        const authorId = req.user.id;
+
+        if (req.user.role !== 'parent') {
+            return res.status(403).json({ message: "Seul un parent peut laisser un avis." });
+        }
+
+        // Optionnel : vérifier si le parent a déjà eu un contrat avec ce prof
+        const { rows: contracts } = await pool.query(
+            'SELECT id FROM contracts WHERE parent_id = $1 AND teacher_id = $2 AND status IN ($3, $4)',
+            [authorId, teacherId, 'active', 'completed']
+        );
+
+        if (contracts.length === 0) {
+            return res.status(403).json({ message: "Vous devez avoir eu un contrat avec cet enseignant pour laisser un avis." });
+        }
+
+        // Insérer l'avis
+        await pool.query(
+            'INSERT INTO reviews (teacher_id, author_id, rating, comment) VALUES ($1, $2, $3, $4)',
+            [teacherId, authorId, rating, comment]
+        );
+
+        // Mettre à jour la note moyenne et le nombre d'avis de l'enseignant
+        await pool.query(`
+            UPDATE teachers_profile
+            SET 
+                reviews_count = (SELECT COUNT(*) FROM reviews WHERE teacher_id = $1),
+                rating = (SELECT AVG(rating) FROM reviews WHERE teacher_id = $1)
+            WHERE user_id = $1
+        `, [teacherId]);
+
+        res.status(201).json({ message: "Avis ajouté avec succès." });
+    } catch (error) {
+        console.error("Erreur ajout d'avis:", error);
         res.status(500).json({ message: "Erreur serveur" });
     }
 };

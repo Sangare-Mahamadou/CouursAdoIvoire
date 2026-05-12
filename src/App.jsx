@@ -8,7 +8,10 @@ import Register from './pages/Register';
 import DashboardParent from './pages/DashboardParent';
 import DashboardTeacher from './pages/DashboardTeacher';
 import DashboardAdmin from './pages/DashboardAdmin';
+import { Toaster } from 'react-hot-toast';
 import './App.css';
+import PlatformFeedback from './components/PlatformFeedback';
+import TeacherProfile from './pages/TeacherProfile';
 
 function App() {
   return (
@@ -18,6 +21,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/teachers" element={<TeachersList />} />
+          <Route path="/teacher/:id" element={<TeacherProfile />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard/parent" element={<DashboardParent />} />
@@ -26,6 +30,18 @@ function App() {
         </Routes>
       </main>
       <Footer />
+      <PlatformFeedback />
+      <Toaster 
+        position="top-center"
+        reverseOrder={false}
+        toastOptions={{
+          duration: 5000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+        }}
+      />
     </Router>
   );
 }
