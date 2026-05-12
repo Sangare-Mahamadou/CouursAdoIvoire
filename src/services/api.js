@@ -120,14 +120,8 @@ export const updateProfile = async (profileData) => {
     return data;
 };
 
-export const getAllAdminContracts = async () => {
-    const response = await fetch(`${API_URL}/admin/contracts`, {
-        headers: getAuthHeaders(),
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || "Erreur lors de la récupération des contrats");
-    return data;
-};
+export const getAllAdminContracts = () => api.get('/admin/contracts').then(res => res.data);
+export const deleteContractByAdmin = (id) => api.delete(`/admin/contracts/${id}`);
 
 export const getProfile = async () => {
     const response = await fetch(`${API_URL}/users/profile`, {

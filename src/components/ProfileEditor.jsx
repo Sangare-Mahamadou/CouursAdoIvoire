@@ -10,7 +10,8 @@ const emptyForm = {
     diploma_level: '',
     subjects: [],
     description: '',
-    profile_picture_url: ''
+    profile_picture_url: '',
+    availability_days: 5
 };
 
 export default function ProfileEditor() {
@@ -36,6 +37,7 @@ export default function ProfileEditor() {
                     diploma_level: profile.diploma_level || 'licence',
                     subjects: Array.isArray(profile.subjects) ? profile.subjects : [],
                     description: profile.description || '',
+                    availability_days: profile.availability_days || 5,
                     profile_picture_url: profile.profile_picture_url || ''
                 });
             })
@@ -49,6 +51,7 @@ export default function ProfileEditor() {
                     diploma_level: user?.diploma_level || 'licence',
                     subjects: user?.subjects || [],
                     description: user?.description || '',
+                    availability_days: user?.availability_days || 5,
                     profile_picture_url: user?.profile_picture_url || ''
                 });
             });
@@ -96,170 +99,169 @@ export default function ProfileEditor() {
         setErrorMsg('');
 
         try {
-            let payload = formData;
-            if (user?.role === 'teacher') {
-                if (formData.subjects.length === 0) {
-                    throw new Error("Veuillez renseigner au moins une matière.");
-                }
+            let payload = new FormData();
+            payload.append('name', formData.name);
+            payload.append('email', formData.email);
+            payload.append('phone', formData.phone);
+            payload.append('city', formData.city);
 
-                payload = new FormData();
-                payload.append('name', formData.name);
-                payload.append('email', formData.email);
-                payload.append('phone', formData.phone);
-                payload.append('city', formData.city);
+            if (user?.role === 'teacher') {
                 payload.append('diploma_level', formData.diploma_level);
                 payload.append('subjects', JSON.stringify(formData.subjects));
                 payload.append('description', formData.description);
+                payload.append('availability_days', formData.availability_days);
                 if (profilePicture) {
                     payload.append('profile_picture', profilePicture);
                 }
             }
 
             await updateProfile(payload);
-
-            const updatedProfile = await getProfile();
-            localStorage.setItem('user', JSON.stringify(updatedProfile));
-            setFormData({
-                name: updatedProfile.name || '',
-                email: updatedProfile.email || '',
-                phone: updatedProfile.phone || '',
-                city: updatedProfile.city || '',
-                diploma_level: updatedProfile.diploma_level || 'licence',
-                subjects: Array.isArray(updatedProfile.subjects) ? updatedProfile.subjects : [],
-                description: updatedProfile.description || '',
-                profile_picture_url: updatedProfile.profile_picture_url || ''
-            });
-
-            setProfilePicture(null);
             setStatus('success');
-            setTimeout(() => {
-                setIsEditing(false);
-                setStatus('idle');
-            }, 1000);
+            setIsEditing(false);
+            // Optionnel: recharger les données ou mettre à jour l'état global
         } catch (err) {
-            setErrorMsg(err.message);
             setStatus('error');
+            setErrorMsg(err.message || "Une erreur s'est produite.");
         }
     };
 
-    if (!isEditing) {
-        return (
-            <div className="card glass" style={{ marginBottom: '2rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        {user?.role === 'teacher' && formData.profile_picture_url && (
-                            <img src={formData.profile_picture_url} alt="Profil" style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--color-primary)' }} />
-                        )}
-                        <div>
-                            <h2 style={{ color: 'var(--color-primary)', marginBottom: '0.5rem' }}>Mes Informations</h2>
-                            <p style={{ color: 'var(--color-text-light)', fontSize: '0.9rem' }}>
-                                {formData.name} - {formData.email} - {formData.phone} - {formData.city}
-                            </p>
-                        </div>
-                    </div>
-                    <button onClick={() => setIsEditing(true)} className="btn btn-outline" style={{ fontSize: '0.875rem' }}>
-                        Modifier
-                    </button>
-                </div>
-            </div>
-        );
-    }
+    if (!user) return <div>Chargement...</div>;
 
     return (
-        <div className="card glass" style={{ marginBottom: '2rem', border: '1px solid var(--color-primary)' }}>
-            <h2 style={{ color: 'var(--color-primary)', marginBottom: '1.5rem' }}>Modifier mes informations</h2>
+        <div className="card profile-editor">
+            <div className="profile-header">
+                <img 
+                    src={profilePicture ? URL.createObjectURL(profilePicture) : formData.profile_picture_url || `https://ui-avatars.com/api/?name=${formData.name}&background=random`} 
+                    alt="Profil" 
+                    className="profile-picture-large"
+                />
+                <h2>{formData.name}</h2>
+                <p>{user.role === 'teacher' ? `Enseignant • ${diplomas.find(d => d.id === formData.diploma_level)?.name || 'Niveau non défini'}` : 'Parent d\'élève'}</p>
+                <button 
+                    className={`btn ${isEditing ? 'btn-outline' : 'btn-primary'}`} 
+                    onClick={() => setIsEditing(!isEditing)}
+                >
+                    {isEditing ? 'Annuler' : 'Modifier mon profil'}
+                </button>
+            </div>
 
-            {status === 'error' && <div className="feedback error">{errorMsg}</div>}
-            {status === 'success' && <div className="feedback success">Profil mis à jour.</div>}
+            {status === 'success' && <div className="alert alert-success">Profil mis à jour avec succès !</div>}
+            {status === 'error' && <div className="alert alert-danger">{errorMsg}</div>}
 
             <form onSubmit={handleSubmit}>
-                <div className="profile-grid">
-                    <div className="form-group">
-                        <label>Nom et prénoms</label>
-                        <input type="text" required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
-                    </div>
-                    <div className="form-group">
-                        <label>Adresse e-mail</label>
-                        <input type="email" required value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
-                    </div>
-                    <div className="form-group">
-                        <label>Téléphone</label>
-                        <input type="text" required value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
-                    </div>
-                    <div className="form-group">
-                        <label>Ville</label>
-                        <input type="text" required value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} />
-                    </div>
-                </div>
-
-                {user?.role === 'teacher' && (
-                    <>
+                {isEditing ? (
+                    <div className="form-grid">
                         <div className="form-group">
-                            <label>Niveau / diplôme</label>
-                            <select required value={formData.diploma_level} onChange={e => setFormData({ ...formData, diploma_level: e.target.value })}>
-                                {diplomas.map(d => (
-                                    <option key={d.id} value={d.id}>{d.label}</option>
-                                ))}
-                            </select>
+                            <label>Nom complet</label>
+                            <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
                         </div>
-
                         <div className="form-group">
-                            <label>Description</label>
-                            <textarea rows="4" placeholder="Présentez votre expérience, votre méthode et vos disponibilités." value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
+                            <label>Email</label>
+                            <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
                         </div>
-
                         <div className="form-group">
-                            <label>Photo de profil</label>
-                            <input type="file" accept="image/*" onChange={e => setProfilePicture(e.target.files[0])} />
+                            <label>Téléphone</label>
+                            <input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
                         </div>
-
                         <div className="form-group">
-                            <label>Matières et prix mensuels</label>
-                            <div className="subjects-editor">
-                                {AVAILABLE_SUBJECTS.map(subject => {
-                                    const selected = formData.subjects.find(s => s.name === subject);
-                                    return (
-                                        <div key={subject} className="subject-editor-row">
-                                            <label className="checkbox-label">
-                                                <input type="checkbox" checked={Boolean(selected)} onChange={e => toggleSubject(subject, e.target.checked)} />
-                                                {subject}
-                                            </label>
-                                            {selected && (
-                                                <input type="number" min="0" required placeholder="Prix / mois" value={selected.price || ''} onChange={e => updateSubjectPrice(subject, e.target.value)} />
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
+                            <label>Ville</label>
+                            <input type="text" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} />
                         </div>
 
-                        <div className="custom-subject-row">
-                            <input type="text" placeholder="Autre matière" value={customSubject} onChange={e => setCustomSubject(e.target.value)} />
-                            <input type="number" min="0" placeholder="Prix / mois" value={customPrice} onChange={e => setCustomPrice(e.target.value)} />
-                            <button type="button" onClick={addCustomSubject} className="btn btn-outline">Ajouter</button>
-                        </div>
-
-                        {formData.subjects.filter(s => !AVAILABLE_SUBJECTS.includes(s.name)).length > 0 && (
-                            <div className="custom-subjects-list">
-                                {formData.subjects.filter(s => !AVAILABLE_SUBJECTS.includes(s.name)).map(subject => (
-                                    <span key={subject.name} className="subject-pill">
-                                        {subject.name} - {subject.price} FCFA/mois
-                                        <button type="button" onClick={() => removeSubject(subject.name)} className="pill-remove">x</button>
-                                    </span>
-                                ))}
-                            </div>
+                        {user.role === 'teacher' && (
+                            <>
+                                <div className="form-group">
+                                    <label>Photo de profil</label>
+                                    <input type="file" accept="image/*" onChange={e => setProfilePicture(e.target.files[0])} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Niveau d'étude</label>
+                                    <select value={formData.diploma_level} onChange={e => setFormData({...formData, diploma_level: e.target.value})}>
+                                        {diplomas.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>Jours disponibles / semaine</label>
+                                    <select value={formData.availability_days} onChange={e => setFormData({...formData, availability_days: parseInt(e.target.value, 10)})}>
+                                        {[...Array(7).keys()].map(i => <option key={i+1} value={i+1}>{i+1} jour{i > 0 ? 's' : ''}</option>)}
+                                    </select>
+                                </div>
+                                <div className="form-group full-width">
+                                    <label>Description</label>
+                                    <textarea rows="5" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})}></textarea>
+                                </div>
+                                <div className="form-group full-width">
+                                    <label>Matières et tarifs (par heure)</label>
+                                    <div className="subjects-grid">
+                                        {AVAILABLE_SUBJECTS.map(subject => (
+                                            <div key={subject} className="subject-item-wrapper">
+                                                <div className={`subject-item ${formData.subjects.some(s => s.name === subject) ? 'selected' : ''}`}>
+                                                    <span>{subject}</span>
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={formData.subjects.some(s => s.name === subject)}
+                                                        onChange={(e) => toggleSubject(subject, e.target.checked)}
+                                                    />
+                                                </div>
+                                                {formData.subjects.some(s => s.name === subject) && (
+                                                    <div className="price-input">
+                                                        <input 
+                                                            type="number" 
+                                                            placeholder="Prix" 
+                                                            value={formData.subjects.find(s => s.name === subject)?.price || ''}
+                                                            onChange={(e) => updateSubjectPrice(subject, e.target.value)}
+                                                            required
+                                                        />
+                                                        <span>FCFA</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="form-group full-width">
+                                    <label>Ajouter une autre matière</label>
+                                    <div style={{ display: 'flex', gap: '1rem' }}>
+                                        <input type="text" placeholder="Nom de la matière" value={customSubject} onChange={e => setCustomSubject(e.target.value)} />
+                                        <input type="number" placeholder="Prix/heure en FCFA" value={customPrice} onChange={e => setCustomPrice(e.targe.value)} />
+                                        <button type="button" className="btn btn-outline" onClick={addCustomSubject}>Ajouter</button>
+                                    </div>
+                                    <div className="custom-subjects-list">
+                                        {formData.subjects.filter(s => !AVAILABLE_SUBJECTS.includes(s.name)).map(s => (
+                                            <div key={s.name} className="chip">
+                                                {s.name} ({s.price} FCFA)
+                                                <button type="button" onClick={() => removeSubject(s.name)}>&times;</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </>
                         )}
-                    </>
+                        <div className="form-group full-width">
+                            <button type="submit" className="btn btn-primary" disabled={status === 'loading'}>
+                                {status === 'loading' ? 'Sauvegarde...' : 'Sauvegarder les modifications'}
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="profile-display">
+                        <p><strong>Email:</strong> {formData.email}</p>
+                        <p><strong>Téléphone:</strong> {formData.phone}</p>
+                        <p><strong>Ville:</strong> {formData.city}</p>
+                        {user.role === 'teacher' && (
+                            <>
+                                <p><strong>Disponibilité:</strong> {formData.availability_days} jour{formData.availability_days > 1 ? 's' : ''}/7</p>
+                                <p><strong>Description:</strong> {formData.description || 'Aucune description fournie.'}</p>
+                                <h3>Matières enseignées</h3>
+                                {formData.subjects.length > 0 ? (
+                                    <ul className="subjects-list-display">
+                                        {formData.subjects.map(s => <li key={s.name}>{s.name} - <strong>{s.price} FCFA/h</strong></li>)}
+                                    </ul>
+                                ) : <p>Aucune matière configurée.</p>}
+                            </>
+                        )}
+                    </div>
                 )}
-
-                <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
-                    <button type="submit" className="btn btn-primary" disabled={status === 'loading'}>
-                        {status === 'loading' ? 'Enregistrement...' : 'Enregistrer'}
-                    </button>
-                    <button type="button" onClick={() => setIsEditing(false)} className="btn btn-outline">
-                        Annuler
-                    </button>
-                </div>
             </form>
         </div>
     );

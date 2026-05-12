@@ -6,7 +6,7 @@ import { registerUser } from '../services/api';
 export default function Register() {
   const [role, setRole] = useState('parent');
   const [formData, setFormData] = useState({
-     name: '', email: '', phone: '', city: '', password: '', diploma_level: '', subjects: []
+     name: '', email: '', phone: '', city: '', password: '', diploma_level: '', subjects: [], availability_days: 5
   });
   const [profilePicture, setProfilePicture] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
@@ -52,6 +52,22 @@ export default function Register() {
     setIsLoading(true);
 
     try {
+      // Validation de l'email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        throw new Error("Veuillez saisir une adresse e-mail valide.");
+      }
+
+      // Validation du téléphone
+      let phone = formData.phone.replace(/\s/g, ''); // enlever les espaces
+      if (phone.startsWith('+225')) {
+        phone = phone.substring(4);
+      }
+      if (!/^\d{10}$/.test(phone)) {
+        throw new Error("Le numéro de téléphone doit contenir 10 chiffres.");
+      }
+      const finalPhone = `+225${phone}`;
+
       if (role === 'teacher' && formData.subjects.length === 0) {
           throw new Error("Veuillez sélectionner au moins une matière.");
       }
@@ -65,18 +81,19 @@ export default function Register() {
           submitData.append('role', role);
           submitData.append('name', formData.name);
           submitData.append('email', formData.email);
-          submitData.append('phone', formData.phone);
+          submitData.append('phone', finalPhone);
           submitData.append('city', formData.city);
           submitData.append('password', formData.password);
           submitData.append('diploma_level', formData.diploma_level);
           submitData.append('subjects', JSON.stringify(formData.subjects));
+          submitData.append('availability_days', formData.availability_days);
           submitData.append('profile_picture', profilePicture);
       } else {
-          submitData = { ...formData, role };
+          submitData = { ...formData, role, phone: finalPhone };
       }
       
       await registerUser(submitData);
-      navigate('/login');
+      navigate('/login?status=registered');
     } catch (err) {
       setErrorMsg(err.message);
     } finally {
@@ -175,6 +192,18 @@ export default function Register() {
                     </div>
                   );
                 })}
+              </div>
+
+              <div className="form-group">
+                <label>Jours de disponibilité par semaine</label>
+                <input 
+                  type="number" 
+                  min="1" 
+                  max="7" 
+                  required 
+                  value={formData.availability_days} 
+                  onChange={e => setFormData({...formData, availability_days: parseInt(e.target.value)})} 
+                />
               </div>
 
               {/* Champ pour ajouter une matière personnalisée */}

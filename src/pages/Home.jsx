@@ -35,7 +35,7 @@ export default function Home() {
                <CheckCircle size={32} color="var(--color-secondary)" />
             </div>
             <h3>Tarifs Transparents</h3>
-            <p style={{ color: 'var(--color-text-light)' }}>Des prix justes en FCFA, fixés en fonction du niveau d'études de l'enseignant.</p>
+            <p style={{ color: 'var(--color-text-light)' }}>Des prix justes en FCFA, adaptés à vos besoins et au profil de l'enseignant.</p>
           </div>
           <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '1rem' }}>
              <div style={{ padding: '1rem', backgroundColor: 'var(--color-primary-light)', borderRadius: '50%' }}>

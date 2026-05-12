@@ -5,7 +5,7 @@ const { put } = require('@vercel/blob');
 
 exports.register = async (req, res) => {
     try {
-        const { name, email, phone, city, password, role, diploma_level, subjects } = req.body;
+        const { name, email, phone, city, password, role, diploma_level, subjects, description } = req.body;
 
         // 1. Vérifier si l'utilisateur existe déjà
         const { rows: existingUsers } = await pool.query('SELECT id FROM users WHERE phone = $1 OR email = $2', [phone, email]);
@@ -37,8 +37,8 @@ exports.register = async (req, res) => {
             });
 
             await pool.query(
-                'INSERT INTO teachers_profile (user_id, diploma_level, subjects, profile_picture_url) VALUES ($1, $2, $3, $4)',
-                [newUserId, diploma_level, subjects || '[]', blob.url]
+                'INSERT INTO teachers_profile (user_id, diploma_level, subjects, profile_picture_url, description) VALUES ($1, $2, $3, $4, $5)',
+                [newUserId, diploma_level, subjects || '[]', blob.url, description || '']
             );
         }
 

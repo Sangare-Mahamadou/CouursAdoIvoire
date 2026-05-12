@@ -62,3 +62,20 @@ exports.getAllContracts = async (req, res) => {
         res.status(500).json({ message: "Erreur serveur" });
     }
 };
+
+// Supprimer un contrat
+exports.deleteContract = async (req, res) => {
+    try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Accès refusé" });
+        }
+
+        const contractId = req.params.id;
+        await pool.query('DELETE FROM contracts WHERE id = $1', [contractId]);
+
+        res.json({ message: "Contrat supprimé avec succès." });
+    } catch (error) {
+        console.error("Erreur suppression contrat:", error);
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+};

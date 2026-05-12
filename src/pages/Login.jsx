@@ -1,13 +1,22 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { loginUser } from '../services/api';
+import AlertMessage from '../components/AlertMessage';
 
 export default function Login() {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('status') === 'registered') {
+      setSuccessMsg('Inscription réussie ! Vous pouvez maintenant vous connecter.');
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -36,11 +45,8 @@ export default function Login() {
       <div className="card auth-card glass">
         <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '1.8rem' }}>Connexion</h2>
         
-        {errorMsg && (
-          <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: '1rem', border: '1px solid #f87171' }}>
-            ⚠️ {errorMsg}
-          </div>
-        )}
+        {errorMsg && <AlertMessage type="error" title="Erreur">{errorMsg}</AlertMessage>}
+        {successMsg && <AlertMessage type="success" title="Succès">{successMsg}</AlertMessage>}
 
         <form onSubmit={handleLogin}>
           <div className="form-group">

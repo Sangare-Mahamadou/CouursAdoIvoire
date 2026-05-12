@@ -31,11 +31,13 @@ export default function ReviewModal({ teacher, onClose, onReviewAdded }) {
 
   return (
     <div className="modal-backdrop">
-      <div className="modal-panel card glass">
-        <h3 style={{ marginBottom: '1.5rem' }}>Laisser un avis pour {teacher.firstName}</h3>
+      <div className="modal-panel card" style={{ padding: '2rem', backgroundColor: 'var(--color-surface)' }}>
+        <h3 style={{ marginBottom: '1.5rem', textAlign: 'center', color: 'var(--color-primary)' }}>
+          Laisser un avis pour {teacher.firstName}
+        </h3>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Votre note</label>
+            <label style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Votre note</label>
             <div className="star-rating">
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star
@@ -43,18 +45,20 @@ export default function ReviewModal({ teacher, onClose, onReviewAdded }) {
                   size={28}
                   className={star <= rating ? 'filled' : ''}
                   onClick={() => setRating(star)}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: 'pointer', transition: 'transform 0.2s' }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 />
               ))}
             </div>
           </div>
           <div className="form-group">
-            <label>Votre commentaire</label>
+            <label style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Votre commentaire</label>
             <textarea
-              rows="4"
+              rows="5"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Partagez votre expérience avec cet enseignant..."
+              placeholder="Partagez votre expérience avec cet enseignant pour aider les autres parents..."
               required
             />
           </div>

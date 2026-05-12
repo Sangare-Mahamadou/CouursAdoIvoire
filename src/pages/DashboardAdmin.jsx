@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCurrentUser, logoutUser, getAllAdminContracts } from '../services/api';
+import { getCurrentUser, logoutUser, getAllAdminContracts, deleteContractByAdmin } from '../services/api';
+import ConfirmDialog from '../components/ConfirmDialog';
+import toast from 'react-hot-toast';
 
 export default function DashboardAdmin() {
   const navigate = useNavigate();
@@ -8,6 +10,7 @@ export default function DashboardAdmin() {
   const [contracts, setContracts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('parents'); // 'parents', 'teachers', 'contracts', 'stats'
+  const [confirmAction, setConfirmAction] = useState(null);
   
   const API_URL = 'http://localhost:5000/api';
 
@@ -45,21 +48,52 @@ export default function DashboardAdmin() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur définitivement ?")) {
-      try {
-        const response = await fetch(`${API_URL}/admin/users/${id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-        if (response.ok) {
-          fetchData();
-        } else {
-          alert("Erreur lors de la suppression.");
-        }
-      } catch (error) {
-        console.error(error);
+  const handleDelete = (id) => {
+    setConfirmAction({
+      title: "Confirmer le bannissement",
+      message: "Êtes-vous sûr de vouloir bannir cet utilisateur ? Cette action est irréversible.",
+      onConfirm: () => executeDeleteUser(id),
+    });
+  };
+
+  const executeDeleteUser = async (id) => {
+    try {
+      const response = await fetch(`${API_URL}/admin/users/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (response.ok) {
+        toast.success('Utilisateur banni avec succès.');
+        fetchData();
+      } else {
+        toast.error("Erreur lors du bannissement.");
       }
+    } catch (error) {
+      console.error(error);
+      toast.error("Une erreur s'est produite.");
+    } finally {
+      setConfirmAction(null);
+    }
+  };
+
+  const handleDeleteContract = (id) => {
+    setConfirmAction({
+      title: "Confirmer la suppression",
+      message: "Voulez-vous vraiment supprimer ce contrat ?",
+      onConfirm: () => executeDeleteContract(id),
+    });
+  };
+
+  const executeDeleteContract = async (id) => {
+    try {
+      await deleteContractByAdmin(id);
+      toast.success('Contrat supprimé.');
+      fetchData();
+    } catch (error) {
+      toast.error("Erreur lors de la suppression du contrat.");
+      console.error(error);
+    } finally {
+      setConfirmAction(null);
     }
   };
 
@@ -73,6 +107,15 @@ export default function DashboardAdmin() {
 
   return (
     <div className="container dashboard-layout animate-fade-in">
+      {confirmAction && (
+        <ConfirmDialog 
+          title={confirmAction.title}
+          message={confirmAction.message}
+          onConfirm={confirmAction.onConfirm}
+          onCancel={() => setConfirmAction(null)}
+        />
+      )}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
             <h1 className="page-title" style={{ marginBottom: '0.5rem' }}>Espace Administrateur</h1>
@@ -194,22 +237,24 @@ export default function DashboardAdmin() {
                       <th style={{ padding: '1rem' }}>Enseignant</th>
                       <th style={{ padding: '1rem' }}>Matière / Classe</th>
                       <th style={{ padding: '1rem' }}>Statut</th>
+                      <th style={{ padding: '1rem' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {contracts.length === 0 ? (
-                      <tr><td colSpan="5" style={{ padding: '2rem', textAlign: 'center' }}>Aucun contrat sur la plateforme.</td></tr>
+                      <tr><td colSpan="6" style={{ padding: '2rem', textAlign: 'center' }}>Aucun contrat trouvé.</td></tr>
                     ) : (
                       contracts.map(c => (
                         <tr key={c.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
                           <td style={{ padding: '1rem' }}>{c.id}</td>
-                          <td style={{ padding: '1rem', fontWeight: '500' }}>{c.parent_name}</td>
-                          <td style={{ padding: '1rem', fontWeight: '500' }}>{c.teacher_name}</td>
-                          <td style={{ padding: '1rem' }}>{c.subject} <br/><span style={{fontSize: '0.85rem', color: 'var(--color-text-light)'}}>{c.class_level}</span></td>
+                          <td style={{ padding: '1rem' }}>{c.parent_name}</td>
+                          <td style={{ padding: '1rem' }}>{c.teacher_name}</td>
+                          <td style={{ padding: '1rem' }}>{c.subject} ({c.class_level})</td>
+                          <td style={{ padding: '1rem' }}><span className={`badge status-${c.status}`}>{c.status}</span></td>
                           <td style={{ padding: '1rem' }}>
-                            <span className="badge" style={{ backgroundColor: c.status === 'active' ? 'var(--color-secondary-light)' : (c.status === 'rejected' ? '#fee2e2' : '#fef3c7'), color: c.status === 'active' ? 'var(--color-secondary-dark)' : (c.status === 'rejected' ? '#b91c1c' : '#b45309') }}>
-                                {c.status === 'active' ? 'Actif' : (c.status === 'rejected' ? 'Refusé' : 'En attente')}
-                            </span>
+                            <button onClick={() => handleDeleteContract(c.id)} className="btn btn-danger" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
+                              Supprimer
+                            </button>
                           </td>
                         </tr>
                       ))

@@ -23,7 +23,7 @@ export default function TeachersList() {
   }, []);
 
   const filteredTeachers = teachers.filter(teacher => {
-    const matchDiploma = filterDiploma ? teacher.diploma === filterDiploma : true;
+    const matchDiploma = filterDiploma ? teacher.diploma_level === filterDiploma : true;
     
     const matchSearch = teacher.subjects && teacher.subjects.length > 0 
       ? teacher.subjects.some(sub => sub.name && sub.name.toLowerCase().includes(searchTerm.toLowerCase())) || 

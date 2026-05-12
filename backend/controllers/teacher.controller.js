@@ -6,7 +6,7 @@ exports.getAllTeachers = async (req, res) => {
             SELECT u.id, u.name, u.phone, u.city,
                    tp.diploma_level as "diploma",
                    tp.subjects, tp.description, tp.rating, tp.reviews_count as "reviewsCount",
-                   tp.profile_picture_url
+                   tp.availability_days, tp.profile_picture_url
             FROM users u
             JOIN teachers_profile tp ON u.id = tp.user_id
             WHERE u.role = 'teacher'
@@ -63,7 +63,7 @@ exports.getTeacherById = async (req, res) => {
             SELECT u.id, u.name, u.phone, u.city,
                    tp.diploma_level,
                    tp.subjects, tp.description, tp.rating, tp.reviews_count as "reviewsCount",
-                   tp.profile_picture_url
+                   tp.availability_days, tp.profile_picture_url
             FROM users u
             JOIN teachers_profile tp ON u.id = tp.user_id
             WHERE u.id = $1 AND u.role = 'teacher'
@@ -92,5 +92,60 @@ exports.getTeacherById = async (req, res) => {
     } catch (error) {
         console.error("Erreur récupération enseignant:", error);
         res.status(500).json({ message: "Erreur serveur" });
+    }
+};
+
+exports.updateProfile = async (req, res) => {
+    const userId = req.user.id;
+    const { name, email, phone, city, diploma_level, subjects, description, availability_days } = req.body;
+
+    try {
+        // Mettre à jour la table users
+        await pool.query(
+            'UPDATE users SET name = $1, email = $2, phone = $3, city = $4 WHERE id = $5',
+            [name, email, phone, city, userId]
+        );
+
+        // Si c'est un enseignant, mettre à jour la table teachers_profile
+        if (req.user.role === 'teacher') {
+            let profilePictureUrl;
+            if (req.file) {
+                const blob = await put(`teachers/${Date.now()}-${req.file.originalname}`, req.file.buffer, {
+                    access: 'public',
+                    token: process.env.BLOB_READ_WRITE_TOKEN
+                });
+                profilePictureUrl = blob.url;
+            }
+
+            const { rows } = await pool.query('SELECT user_id FROM teachers_profile WHERE user_id = $1', [userId]);
+
+            if (rows.length > 0) {
+                // Le profil existe, on le met à jour
+                let updateQuery = 'UPDATE teachers_profile SET diploma_level = $1, subjects = $2, description = $3, availability_days = $4';
+                const queryParams = [diploma_level, subjects, description, availability_days, userId];
+                
+                if (profilePictureUrl) {
+                    updateQuery += ', profile_picture_url = $6';
+                    queryParams.splice(5, 0, profilePictureUrl);
+                }
+                
+                updateQuery += ' WHERE user_id = $' + (queryParams.length);
+
+                await pool.query(updateQuery, queryParams);
+
+            } else {
+                // Le profil n'existe pas, on le crée
+                await pool.query(
+                    'INSERT INTO teachers_profile (user_id, diploma_level, subjects, description, availability_days, profile_picture_url) VALUES ($1, $2, $3, $4, $5, $6)',
+                    [userId, diploma_level, subjects, description, availability_days, profilePictureUrl || '']
+                );
+            }
+        }
+
+        res.json({ message: "Profil mis à jour avec succès." });
+
+    } catch (error) {
+        console.error("Erreur lors de la mise à jour du profil:", error);
+        res.status(500).json({ message: "Erreur interne du serveur." });
     }
 };

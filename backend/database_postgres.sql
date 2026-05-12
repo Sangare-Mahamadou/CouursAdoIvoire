@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS teachers_profile (
     diploma_level VARCHAR(50) NOT NULL,
     subjects TEXT DEFAULT '',
     description TEXT,
+    availability_days INT DEFAULT 5, -- Ajout de la colonne
     rating DECIMAL(3, 1) DEFAULT 0.0,
     reviews_count INT DEFAULT 0,
     profile_picture_url VARCHAR(255) NOT NULL,
@@ -64,3 +65,14 @@ ON CONFLICT (phone) DO UPDATE SET
     email = EXCLUDED.email,
     password_hash = EXCLUDED.password_hash,
     role = 'admin';
+
+-- Table des enseignants
+CREATE TABLE IF NOT EXISTS teachers (
+    id SERIAL PRIMARY KEY,
+    user_id INT UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    subjects TEXT[],
+    level VARCHAR(50),
+    availability_days INT DEFAULT 5,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);

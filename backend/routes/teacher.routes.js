@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const teacherController = require('../controllers/teacher.controller');
+const authMiddleware = require('../middlewares/authMiddleware');
+const contractController = require('../controllers/contract.controller');
 
 // Route : GET /api/teachers
 router.get('/', teacherController.getAllTeachers);
