@@ -140,3 +140,4 @@ export const getProfile = async () => {
 
 export const getTeacherById = (id) => api.get(`/teachers/${id}`).then(res => res.data);
 export const getTeacherReviews = (teacherId) => api.get(`/teachers/${teacherId}/reviews`).then(res => res.data);
+export const addReview = (teacherId, reviewData) => api.post(`/teachers/${teacherId}/review`, reviewData);
