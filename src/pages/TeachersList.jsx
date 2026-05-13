@@ -10,7 +10,7 @@ export default function TeachersList() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Appel à l'API pour récupérer les vrais profs depuis MySQL
+    // Appel à l'API pour récupérer les enseignants
     getTeachers()
       .then(data => {
         setTeachers(data);
@@ -38,7 +38,7 @@ export default function TeachersList() {
       <div>
         <h1 className="page-title">Trouver un enseignant</h1>
         <p style={{ color: 'var(--color-text-light)', marginTop: '-1.5rem', marginBottom: '2rem' }}>
-          Parcourez nos profils vérifiés réels depuis la base de données.
+          Parcourez nos profils vérifiés.
         </p>
       </div>
 
@@ -66,7 +66,7 @@ export default function TeachersList() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {isLoading ? (
           <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: 'var(--color-text-light)' }}>
-            Chargement des enseignants depuis MySQL...
+            Chargement des enseignants...
           </div>
         ) : filteredTeachers.length > 0 ? (
           filteredTeachers.map(teacher => (
@@ -74,7 +74,7 @@ export default function TeachersList() {
           ))
         ) : (
           <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: 'var(--color-text-light)' }}>
-            Aucun enseignant trouvé avec ces critères en base de données.
+            Aucun enseignant trouvé avec ces critères.
           </div>
         )}
       </div>

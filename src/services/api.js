@@ -1,4 +1,8 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+let envUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+if (envUrl && !envUrl.endsWith('/api')) {
+    envUrl = envUrl.endsWith('/') ? `${envUrl}api` : `${envUrl}/api`;
+}
+const API_URL = envUrl;
 
 export const registerUser = async (userData) => {
     const isFormData = userData instanceof FormData;
