@@ -325,14 +325,50 @@
   padding: 0;
 }
 
+.profile-picture-large {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid white;
+  box-shadow: var(--shadow-md);
+  margin: 0 auto 1rem;
+  display: block;
+}
+
+.profile-header {
+  text-align: center;
+  padding: 2rem 1.5rem;
+  background: linear-gradient(135deg, var(--color-primary-light), var(--color-surface));
+  border-radius: var(--radius-lg);
+  margin-bottom: 2rem;
+  border: 1px solid var(--color-border);
+}
+
+.profile-header h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.profile-header p {
+  color: var(--color-text-light);
+  margin-bottom: 1rem;
+}
+
 /* Dashboard utils */
 .dashboard-layout { padding: 3rem 0; display:flex; flex-direction:column; gap:2rem; }
 .page-title { margin-bottom: 2rem; font-size: 2rem; border-bottom: 2px solid var(--color-primary-light); padding-bottom: 0.5rem; display: inline-block;}
 .platform-feedback-fab {
   position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
+  bottom: 2rem;
+  right: 2rem;
   z-index: 1000;
+}
+
+.platform-feedback-fab .btn {
+  border-radius: var(--radius-full);
+  padding: 1rem 1.5rem;
+  box-shadow: var(--shadow-lg);
 }
 
 .platform-feedback-modal {
@@ -342,18 +378,44 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(4px);
   padding: 1rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.platform-feedback-modal .modal-panel {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow-glass);
+  width: 100%;
+  max-width: 500px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.platform-feedback-modal h3 {
+  font-size: 1.5rem;
+  color: var(--color-primary-dark);
+  text-align: center;
 }
 
 .star-rating {
   display: flex;
   gap: 0.5rem;
+  justify-content: center;
+  cursor: pointer;
+  margin: 1rem 0;
 }
 
 .star-rating .filled {
   color: #f59e0b;
   fill: #f59e0b;
+  transition: transform 0.2s;
+}
+
+.star-rating svg:hover {
+  transform: scale(1.1);
 }
 
 .form-actions {
