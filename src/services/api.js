@@ -124,8 +124,24 @@ export const updateProfile = async (profileData) => {
     return data;
 };
 
-export const getAllAdminContracts = () => api.get('/admin/contracts').then(res => res.data);
-export const deleteContractByAdmin = (id) => api.delete(`/admin/contracts/${id}`);
+export const getAllAdminContracts = async () => {
+    const response = await fetch(`${API_URL}/admin/contracts`, {
+        headers: getAuthHeaders(),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur");
+    return data;
+};
+
+export const deleteContractByAdmin = async (id) => {
+    const response = await fetch(`${API_URL}/admin/contracts/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur");
+    return data;
+};
 
 export const getProfile = async () => {
     const response = await fetch(`${API_URL}/users/profile`, {
@@ -136,6 +152,27 @@ export const getProfile = async () => {
     return data;
 };
 
-export const getTeacherById = (id) => api.get(`/teachers/${id}`).then(res => res.data);
-export const getTeacherReviews = (teacherId) => api.get(`/teachers/${teacherId}/reviews`).then(res => res.data);
-export const addReview = (teacherId, reviewData) => api.post(`/teachers/${teacherId}/review`, reviewData);
+export const getTeacherById = async (id) => {
+    const response = await fetch(`${API_URL}/teachers/${id}`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur");
+    return data;
+};
+
+export const getTeacherReviews = async (teacherId) => {
+    const response = await fetch(`${API_URL}/teachers/${teacherId}/reviews`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur");
+    return data;
+};
+
+export const addReview = async (teacherId, reviewData) => {
+    const response = await fetch(`${API_URL}/teachers/${teacherId}/review`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(reviewData)
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur");
+    return data;
+};

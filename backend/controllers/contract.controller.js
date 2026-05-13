@@ -45,11 +45,11 @@ exports.createContract = async (req, res) => {
         const { rows: teachers } = await pool.query('SELECT email, name FROM users WHERE id = $1', [teacher_id]);
         if (teachers.length > 0) {
             const teacher = teachers[0];
-            await sendEmail(
+            sendEmail(
                 teacher.email,
                 'Nouvelle demande de cours - AlloProf CI',
                 `Bonjour ${teacher.name},\n\nVous avez reçu une nouvelle demande de cours pour : ${requestedSubjects.join(', ')}.\nVeuillez vous connecter à votre espace pour la consulter et l'accepter ou la refuser.\n\nCordialement,\nL'équipe AlloProf CI`
-            );
+            ).catch(err => console.error("Erreur d'envoi d'e-mail:", err));
         }
 
         res.status(201).json({ message: "Demande envoyée avec succès" });
@@ -122,11 +122,11 @@ exports.updateContractStatus = async (req, res) => {
         await pool.query('UPDATE contracts SET status = $1 WHERE id = $2', [status, contractId]);
 
         const statusText = status === 'active' ? 'acceptée' : 'refusée';
-        await sendEmail(
+        sendEmail(
             contract.email,
             `Mise à jour de votre demande - AlloProf CI`,
             `Bonjour ${contract.parent_name},\n\nVotre demande de cours en ${contract.subject} a été ${statusText} par l'enseignant.\n\nConnectez-vous à votre espace pour plus de détails.\n\nCordialement,\nL'équipe AlloProf CI`
-        );
+        ).catch(err => console.error("Erreur d'envoi d'e-mail:", err));
 
         res.json({ message: `Le statut a été mis à jour avec succès : ${status}` });
     } catch (error) {

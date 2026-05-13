@@ -53,7 +53,7 @@ export default function BookingModal({ teacher, onClose }) {
         }))
       });
       setStatus('success');
-      setTimeout(() => onClose(), 2000); // Ferme automatiquement après succès
+      setTimeout(() => onClose(), 1000); // Ferme automatiquement après succès
     } catch (err) {
       setErrorMsg(err.message);
       setStatus('error');
