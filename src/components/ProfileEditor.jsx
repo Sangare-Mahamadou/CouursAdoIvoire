@@ -136,7 +136,7 @@ export default function ProfileEditor() {
                     className="profile-picture-large"
                 />
                 <h2>{formData.name}</h2>
-                <p>{user.role === 'teacher' ? `Enseignant • ${diplomas.find(d => d.id === formData.diploma_level)?.name || 'Niveau non défini'}` : 'Parent d\'élève'}</p>
+                <p>{user.role === 'teacher' ? `Enseignant • ${diplomas.find(d => d.id === formData.diploma_level)?.label || 'Niveau non défini'}` : 'Parent d\'élève'}</p>
                 <button 
                     className={`btn ${isEditing ? 'btn-outline' : 'btn-primary'}`} 
                     onClick={() => setIsEditing(!isEditing)}

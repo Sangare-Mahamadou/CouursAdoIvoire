@@ -12,7 +12,7 @@ export default function TeacherCard({ teacher, onReviewAdded }) {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   
-  const diplomaObj = diplomas.find(d => d.id === teacher.diploma_level);
+  const diplomaObj = diplomas.find(d => d.id === teacher.diploma || d.id === teacher.diploma_level);
   const diplomaLabel = diplomaObj ? diplomaObj.label : 'Non défini';
 
   const handleContactClick = () => {
@@ -52,7 +52,7 @@ export default function TeacherCard({ teacher, onReviewAdded }) {
             {teacher.subjects && teacher.subjects.map((sub, idx) => (
               <span key={idx} className="subject-pill" style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                 <span style={{ fontWeight: '600' }}>{sub.name}</span>
-                <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>{sub.price} FCFA/mois</span>
+                <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>{sub.price} FCFA/h</span>
               </span>
             ))}
           </div>
@@ -68,7 +68,7 @@ export default function TeacherCard({ teacher, onReviewAdded }) {
               <span style={{ color: 'var(--color-text-light)' }}>({teacher.reviewsCount || 0} avis)</span>
             </div>
             <span className="badge" style={{ backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary-dark)' }}>
-              Dispo. {teacher.availability_days || 5}j/7
+              Disponible {teacher.availability_days || 5}j/7
             </span>
           </div>
         </div>
