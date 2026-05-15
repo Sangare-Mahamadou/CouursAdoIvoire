@@ -88,27 +88,14 @@ exports.deleteContract = async (req, res) => {
 
         if (contracts.length > 0) {
             const contract = contracts[0];
+            const adminId = req.user.id;
             
-            const messageParent = `Votre contrat de cours en ${contract.subject} avec l'enseignant ${contract.teacher_name} a été annulé. Motif: ${motive}`;
-            const messageTeacher = `Le contrat de cours en ${contract.subject} avec le parent ${contract.parent_name} a été annulé. Motif: ${motive}`;
+            const messageParent = `Votre contrat de cours en ${contract.subject} avec l'enseignant ${contract.teacher_name} a été annulé par l'administration. Motif: ${motive}`;
+            const messageTeacher = `Le contrat de cours en ${contract.subject} avec le parent ${contract.parent_name} a été annulé par l'administration. Motif: ${motive}`;
 
-            // Insert notifications
-            await pool.query('INSERT INTO notifications (user_id, message) VALUES ($1, $2)', [contract.parent_id, messageParent]);
-            await pool.query('INSERT INTO notifications (user_id, message) VALUES ($1, $2)', [contract.teacher_id, messageTeacher]);
-
-            // Notification au parent
-            sendEmail(
-                contract.parent_email,
-                'Annulation de contrat - AlloProf CI',
-                `Bonjour ${contract.parent_name},\n\n${messageParent}\n\nCordialement,\nL'équipe AlloProf CI`
-            ).catch(err => console.error("Erreur d'envoi d'e-mail:", err));
-
-            // Notification à l'enseignant
-            sendEmail(
-                contract.teacher_email,
-                'Annulation de contrat - AlloProf CI',
-                `Bonjour ${contract.teacher_name},\n\n${messageTeacher}\n\nCordialement,\nL'équipe AlloProf CI`
-            ).catch(err => console.error("Erreur d'envoi d'e-mail:", err));
+            // Notifier via la messagerie privée (Chat Interne)
+            await pool.query('INSERT INTO messages (sender_id, receiver_id, content) VALUES ($1, $2, $3)', [adminId, contract.parent_id, messageParent]);
+            await pool.query('INSERT INTO messages (sender_id, receiver_id, content) VALUES ($1, $2, $3)', [adminId, contract.teacher_id, messageTeacher]);
         }
 
         await pool.query('DELETE FROM contracts WHERE id = $1', [contractId]);
@@ -133,6 +120,31 @@ exports.deletePlatformReview = async (req, res) => {
         res.json({ message: "Avis supprimé avec succès." });
     } catch (error) {
         console.error("Erreur suppression avis:", error);
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+};
+
+// Envoyer un message global via notifications
+exports.sendGlobalMessage = async (req, res) => {
+    try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Accès refusé" });
+        }
+
+        const { message } = req.body;
+        if (!message) {
+            return res.status(400).json({ message: "Un message est requis." });
+        }
+
+        const { rows: users } = await pool.query("SELECT id FROM users WHERE role != 'admin'");
+        
+        for (const user of users) {
+            await pool.query('INSERT INTO notifications (user_id, message) VALUES ($1, $2)', [user.id, message]);
+        }
+
+        res.json({ message: "Message global envoyé avec succès." });
+    } catch (error) {
+        console.error("Erreur envoi message global:", error);
         res.status(500).json({ message: "Erreur serveur" });
     }
 };

@@ -6,6 +6,9 @@ const contractController = require('../controllers/contract.controller');
 // GET /api/contracts - Afficher le dashboard
 router.get('/', authMiddleware, contractController.getMyContracts);
 
+// GET /api/contracts/check/:teacherId - Vérifier si contrat existe
+router.get('/check/:teacherId', authMiddleware, contractController.checkContractStatus);
+
 // POST /api/contracts - Parent réserve un professeur
 router.post('/', authMiddleware, contractController.createContract);
 

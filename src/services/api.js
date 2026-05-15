@@ -214,3 +214,53 @@ export const addReview = async (teacherId, reviewData) => {
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };
+
+export const checkContractStatus = async (teacherId) => {
+    const response = await fetch(`${API_URL}/contracts/check/${teacherId}`, {
+        headers: getAuthHeaders(),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur");
+    return data;
+};
+
+// --- MESSAGERIE ---
+export const getContacts = async () => {
+    const response = await fetch(`${API_URL}/messages/contacts`, {
+        headers: getAuthHeaders(),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur");
+    return data;
+};
+
+export const getMessages = async (userId) => {
+    const response = await fetch(`${API_URL}/messages/${userId}`, {
+        headers: getAuthHeaders(),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur");
+    return data;
+};
+
+export const sendMessage = async (receiverId, content) => {
+    const response = await fetch(`${API_URL}/messages`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ receiverId, content })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur");
+    return data;
+};
+
+export const sendGlobalMessageAdmin = async (message) => {
+    const response = await fetch(`${API_URL}/admin/global-message`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ message })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur");
+    return data;
+};

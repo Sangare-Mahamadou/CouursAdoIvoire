@@ -9,5 +9,6 @@ router.get('/contracts', authMiddleware, adminController.getAllContracts);
 // DELETE /api/admin/contracts/:id - Supprimer un contrat
 router.delete('/contracts/:id', authMiddleware, adminController.deleteContract);
 router.delete('/platform-reviews/:id', authMiddleware, adminController.deletePlatformReview);
+router.post('/global-message', authMiddleware, adminController.sendGlobalMessage);
 
 module.exports = router;

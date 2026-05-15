@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCurrentUser, logoutUser, getAllAdminContracts, deleteContractByAdmin, getPlatformReviews, deletePlatformReviewAdmin } from '../services/api';
+import { getCurrentUser, logoutUser, getAllAdminContracts, deleteContractByAdmin, getPlatformReviews, deletePlatformReviewAdmin, sendGlobalMessageAdmin } from '../services/api';
 import ConfirmDialog from '../components/ConfirmDialog';
 import toast from 'react-hot-toast';
 
@@ -12,6 +12,8 @@ export default function DashboardAdmin() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('parents'); // 'parents', 'teachers', 'contracts', 'reviews', 'stats'
   const [confirmAction, setConfirmAction] = useState(null);
+  const [motiveModal, setMotiveModal] = useState({ isOpen: false, contractId: null, motive: '' });
+  const [globalMessageModal, setGlobalMessageModal] = useState({ isOpen: false, message: '' });
   
   let envUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
   if (envUrl && !envUrl.endsWith('/api')) {
@@ -90,16 +92,18 @@ export default function DashboardAdmin() {
   };
 
   const handleDeleteContract = (id) => {
-    const motive = window.prompt("Veuillez saisir le motif de la suppression pour informer les utilisateurs concernés:");
-    if (motive === null) return; // Annulé
-    if (!motive.trim()) {
+    setMotiveModal({ isOpen: true, contractId: id, motive: '' });
+  };
+
+  const confirmDeleteContract = () => {
+    if (!motiveModal.motive.trim()) {
         toast.error("Le motif est obligatoire.");
         return;
     }
     setConfirmAction({
       title: "Confirmer la suppression",
       message: "Voulez-vous vraiment supprimer ce contrat ?",
-      onConfirm: () => executeDeleteContract(id, motive),
+      onConfirm: () => executeDeleteContract(motiveModal.contractId, motiveModal.motive),
     });
   };
 
@@ -113,6 +117,7 @@ export default function DashboardAdmin() {
       console.error(error);
     } finally {
       setConfirmAction(null);
+      setMotiveModal({ isOpen: false, contractId: null, motive: '' });
     }
   };
 
@@ -127,7 +132,20 @@ export default function DashboardAdmin() {
       }
     }
   };
-
+  const handleSendGlobalMessage = async (e) => {
+    e.preventDefault();
+    if (!globalMessageModal.message.trim()) {
+        toast.error("Le message ne peut pas être vide.");
+        return;
+    }
+    try {
+        await sendGlobalMessageAdmin(globalMessageModal.message);
+        toast.success("Message global envoyé avec succès.");
+        setGlobalMessageModal({ isOpen: false, message: '' });
+    } catch (error) {
+        toast.error("Erreur lors de l'envoi du message global.");
+    }
+  };
   // Filtrage des données
   const parents = users.filter(u => u.role === 'parent');
   const teachers = users.filter(u => u.role === 'teacher');
@@ -152,9 +170,14 @@ export default function DashboardAdmin() {
             <h1 className="page-title" style={{ marginBottom: '0.5rem' }}>Espace Administrateur</h1>
             <p style={{ color: 'var(--color-text-light)' }}>Vue globale et modération de la plateforme AlloProf CI.</p>
         </div>
-        <button onClick={() => { logoutUser(); navigate('/login'); }} className="btn btn-outline" style={{ borderColor: '#ef4444', color: '#ef4444' }}>
-            Déconnexion Admin
-        </button>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+            <button onClick={() => setGlobalMessageModal({ isOpen: true, message: '' })} className="btn btn-primary">
+                Envoyer un message global
+            </button>
+            <button onClick={() => { logoutUser(); navigate('/login'); }} className="btn btn-outline" style={{ borderColor: '#ef4444', color: '#ef4444' }}>
+                Déconnexion Admin
+            </button>
+        </div>
       </div>
 
       {/* Navigation des onglets */}
@@ -363,6 +386,58 @@ export default function DashboardAdmin() {
             </div>
           )}
         </>
+      )}
+
+      {/* Modal Motif Suppression */}
+      {motiveModal.isOpen && (
+          <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="card glass animate-fade-in" style={{ width: '100%', maxWidth: '400px', padding: '2rem', position: 'relative' }}>
+              <h2 style={{ marginBottom: '1rem', color: '#ef4444' }}>Motif de suppression</h2>
+              <p style={{ marginBottom: '1.5rem', color: 'var(--color-text-light)', fontSize: '0.9rem' }}>
+                Veuillez saisir le motif de la suppression pour informer les utilisateurs concernés via la messagerie interne.
+              </p>
+              <div className="form-group">
+                <textarea 
+                    rows="3"
+                    className="form-control"
+                    value={motiveModal.motive}
+                    onChange={(e) => setMotiveModal({ ...motiveModal, motive: e.target.value })}
+                    placeholder="Motif de la suppression..."
+                />
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                  <button onClick={confirmDeleteContract} className="btn" style={{ flex: 1, backgroundColor: '#ef4444', color: 'white' }}>Supprimer</button>
+                  <button onClick={() => setMotiveModal({ isOpen: false, contractId: null, motive: '' })} className="btn btn-outline">Annuler</button>
+              </div>
+            </div>
+          </div>
+      )}
+
+      {/* Modal Message Global */}
+      {globalMessageModal.isOpen && (
+          <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="card glass animate-fade-in" style={{ width: '100%', maxWidth: '500px', padding: '2rem', position: 'relative' }}>
+              <h2 style={{ marginBottom: '1rem', color: 'var(--color-primary)' }}>Message Global</h2>
+              <p style={{ marginBottom: '1.5rem', color: 'var(--color-text-light)', fontSize: '0.9rem' }}>
+                Ce message sera envoyé à tous les utilisateurs (parents et enseignants) sous forme de notification.
+              </p>
+              <form onSubmit={handleSendGlobalMessage}>
+                  <div className="form-group">
+                    <textarea 
+                        rows="4"
+                        className="form-control"
+                        value={globalMessageModal.message}
+                        onChange={(e) => setGlobalMessageModal({ ...globalMessageModal, message: e.target.value })}
+                        placeholder="Votre message global..."
+                    />
+                  </div>
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                      <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>Envoyer à tous</button>
+                      <button type="button" onClick={() => setGlobalMessageModal({ isOpen: false, message: '' })} className="btn btn-outline">Annuler</button>
+                  </div>
+              </form>
+            </div>
+          </div>
       )}
     </div>
   );

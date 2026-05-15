@@ -33,6 +33,20 @@ async function addTables() {
         `);
         console.log("Table notifications prête.");
         
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS messages (
+                id SERIAL PRIMARY KEY,
+                sender_id INT NOT NULL,
+                receiver_id INT NOT NULL,
+                content TEXT NOT NULL,
+                is_read BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+        `);
+        console.log("Table messages prête.");
+        
         console.log("✅ Nouvelles tables ajoutées avec succès !");
     } catch (err) {
         console.error("❌ Erreur :", err.message);

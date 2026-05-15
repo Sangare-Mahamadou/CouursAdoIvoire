@@ -8,7 +8,7 @@ exports.getAllTeachers = async (req, res) => {
                    tp.subjects, tp.description, tp.rating, tp.reviews_count as "reviewsCount",
                    tp.availability_days, tp.profile_picture_url
             FROM users u
-            JOIN teachers_profile tp ON u.id = tp.user_id
+            LEFT JOIN teachers_profile tp ON u.id = tp.user_id
             WHERE u.role = 'teacher'
         `);
         
@@ -65,7 +65,7 @@ exports.getTeacherById = async (req, res) => {
                    tp.subjects, tp.description, tp.rating, tp.reviews_count as "reviewsCount",
                    tp.availability_days, tp.profile_picture_url
             FROM users u
-            JOIN teachers_profile tp ON u.id = tp.user_id
+            LEFT JOIN teachers_profile tp ON u.id = tp.user_id
             WHERE u.id = $1 AND u.role = 'teacher'
         `, [teacherId]);
 

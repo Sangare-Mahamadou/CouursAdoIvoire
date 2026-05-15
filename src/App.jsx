@@ -10,7 +10,6 @@ import DashboardTeacher from './pages/DashboardTeacher';
 import DashboardAdmin from './pages/DashboardAdmin';
 import { Toaster } from 'react-hot-toast';
 import './App.css';
-import PlatformFeedback from './components/PlatformFeedback';
 import TeacherProfile from './pages/TeacherProfile';
 
 function App() {
@@ -30,7 +29,6 @@ function App() {
         </Routes>
       </main>
       <Footer />
-      <PlatformFeedback />
       <Toaster 
         position="top-center"
         reverseOrder={false}

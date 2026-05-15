@@ -208,3 +208,31 @@ exports.addReview = async (req, res) => {
         res.status(500).json({ message: "Erreur serveur" });
     }
 };
+
+exports.checkContractStatus = async (req, res) => {
+    try {
+        const teacherId = req.params.teacherId;
+        const parentId = req.user.id;
+
+        const { rows } = await pool.query(
+            "SELECT status FROM contracts WHERE parent_id = $1 AND teacher_id = $2 ORDER BY created_at DESC",
+            [parentId, teacherId]
+        );
+
+        let hasActive = false;
+        let hasPast = false;
+
+        rows.forEach(r => {
+            if (r.status === 'active') hasActive = true;
+            if (r.status === 'completed' || r.status === 'active') hasPast = true;
+        });
+
+        res.json({
+            hasActiveContract: hasActive,
+            canRate: hasPast
+        });
+    } catch (error) {
+        console.error("Erreur vérification contrat:", error);
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+};

@@ -1,14 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getContracts, rateContract } from '../services/api';
 import ProfileEditor from '../components/ProfileEditor';
+import ChatInterface from '../components/ChatInterface';
 import { getUserNotifications } from '../services/api';
-import { Bell } from 'lucide-react';
+import { Bell, MessageSquare } from 'lucide-react';
 
 export default function DashboardParent() {
   const [contracts, setContracts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [ratingModal, setRatingModal] = useState({ isOpen: false, contractId: null, rating: 5 });
   const [notifications, setNotifications] = useState([]);
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   const fetchContracts = useCallback(() => {
     setIsLoading(true);
@@ -72,9 +74,20 @@ export default function DashboardParent() {
         </div>
       )}
 
-      <ProfileEditor />
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '2px solid var(--color-border)', paddingBottom: '1rem' }}>
+        <button onClick={() => setActiveTab('dashboard')} className={`btn ${activeTab === 'dashboard' ? 'btn-primary' : 'btn-outline'}`}>
+          Tableau de Bord
+        </button>
+        <button onClick={() => setActiveTab('messages')} className={`btn ${activeTab === 'messages' ? 'btn-primary' : 'btn-outline'}`} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <MessageSquare size={18} /> Messagerie
+        </button>
+      </div>
 
-      <div className="card glass">
+      {activeTab === 'dashboard' ? (
+        <>
+          <ProfileEditor />
+
+          <div className="card glass">
         <h2 style={{ marginBottom: '1.5rem', color: 'var(--color-primary)' }}>Mes Demandes & Contrats en cours</h2>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
@@ -170,6 +183,10 @@ export default function DashboardParent() {
               </form>
             </div>
           </div>
+      )}
+        </>
+      ) : (
+        <ChatInterface />
       )}
     </div>
   );

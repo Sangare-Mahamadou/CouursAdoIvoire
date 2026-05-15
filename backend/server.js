@@ -14,12 +14,14 @@ const teacherRoutes = require('./routes/teacher.routes');
 const contractRoutes = require('./routes/contract.routes');
 const adminRoutes = require('./routes/admin.routes');
 const userRoutes = require('./routes/user.routes');
+const messageRoutes = require('./routes/message.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api/contracts', contractRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/messages', messageRoutes);
 const platformReviewRoutes = require('./routes/platformReview.routes');
 app.use('/api/platform-reviews', platformReviewRoutes);
 

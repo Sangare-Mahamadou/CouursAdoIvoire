@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getContracts, updateContractStatus } from '../services/api';
 import ProfileEditor from '../components/ProfileEditor';
+import ChatInterface from '../components/ChatInterface';
 import { getUserNotifications } from '../services/api';
-import { Bell } from 'lucide-react';
+import { Bell, MessageSquare } from 'lucide-react';
 
 export default function DashboardTeacher() {
   const [contracts, setContracts] = useState([]);
@@ -10,6 +11,7 @@ export default function DashboardTeacher() {
   const [profileData, setProfileData] = useState({ estimatedRevenue: 0 });
   const [expandedContract, setExpandedContract] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   const fetchContracts = useCallback(() => {
     getContracts()
@@ -69,9 +71,20 @@ export default function DashboardTeacher() {
         </div>
       )}
 
-      <ProfileEditor />
-      
-      <div className="grid grid-cols-1" style={{ marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '2px solid var(--color-border)', paddingBottom: '1rem' }}>
+        <button onClick={() => setActiveTab('dashboard')} className={`btn ${activeTab === 'dashboard' ? 'btn-primary' : 'btn-outline'}`}>
+          Tableau de Bord
+        </button>
+        <button onClick={() => setActiveTab('messages')} className={`btn ${activeTab === 'messages' ? 'btn-primary' : 'btn-outline'}`} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <MessageSquare size={18} /> Messagerie
+        </button>
+      </div>
+
+      {activeTab === 'dashboard' ? (
+        <>
+          <ProfileEditor />
+          
+          <div className="grid grid-cols-1" style={{ marginBottom: '2rem' }}>
          <div className="card text-center glass">
             <h3 style={{ color: 'var(--color-text-light)', fontSize: '1rem' }}>Revenus estimés (Mois)</h3>
             <p className="text-gradient" style={{ fontSize: '2.5rem', fontWeight: '800', marginTop: '0.5rem' }}>{profileData.estimatedRevenue} FCFA</p>
@@ -175,6 +188,10 @@ export default function DashboardTeacher() {
           </table>
         </div>
       </div>
+        </>
+      ) : (
+        <ChatInterface />
+      )}
     </div>
   );
 }

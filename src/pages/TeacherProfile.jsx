@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getTeacherById, getTeacherReviews } from '../services/api';
+import { getTeacherById, getTeacherReviews, checkContractStatus, getCurrentUser } from '../services/api';
 import TeacherCard from '../components/TeacherCard';
-import { Star } from 'lucide-react';
+import { Star, Phone, Mail } from 'lucide-react';
+import ReviewModal from '../components/ReviewModal';
 
 export default function TeacherProfile() {
   const { id } = useParams();
   const [teacher, setTeacher] = useState(null);
   const [reviews, setReviews] = useState([]);
+  const [contractStatus, setContractStatus] = useState({ hasActiveContract: false, canRate: false });
   const [isLoading, setIsLoading] = useState(true);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const user = getCurrentUser();
 
   useEffect(() => {
     const fetchTeacherData = async () => {
@@ -20,6 +24,11 @@ export default function TeacherProfile() {
         ]);
         setTeacher(teacherData);
         setReviews(reviewsData);
+        
+        if (user && user.role === 'parent') {
+           const statusData = await checkContractStatus(id);
+           setContractStatus(statusData);
+        }
       } catch (error) {
         console.error("Erreur de chargement du profil de l'enseignant:", error);
       } finally {
@@ -42,8 +51,27 @@ export default function TeacherProfile() {
     <div className="container" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
       <TeacherCard teacher={teacher} />
 
+      {contractStatus.hasActiveContract && (
+        <div className="card glass animate-fade-in" style={{ marginTop: '2rem', borderLeft: '4px solid var(--color-primary)' }}>
+          <h3 style={{ marginBottom: '1rem', color: 'var(--color-primary-dark)' }}>Coordonnées de l'enseignant</h3>
+          <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <Phone size={18} /> <a href={`tel:${teacher.phone}`} style={{ textDecoration: 'none', color: 'var(--color-text)' }}>{teacher.phone}</a>
+          </p>
+          <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Mail size={18} /> <a href={`mailto:${teacher.email}`} style={{ textDecoration: 'none', color: 'var(--color-text)' }}>{teacher.email}</a>
+          </p>
+        </div>
+      )}
+
       <div className="reviews-section" style={{ marginTop: '3rem' }}>
-        <h3 style={{ marginBottom: '2rem' }}>Avis des parents ({reviews.length})</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <h3>Avis des parents ({reviews.length})</h3>
+            {contractStatus.canRate && (
+                <button onClick={() => setIsReviewModalOpen(true)} className="btn btn-primary">
+                    Donner un avis
+                </button>
+            )}
+        </div>
         {reviews.length > 0 ? (
           <div className="reviews-list">
             {reviews.map((review) => (
@@ -65,6 +93,17 @@ export default function TeacherProfile() {
           <p>Cet enseignant n'a pas encore reçu d'avis.</p>
         )}
       </div>
+
+      {isReviewModalOpen && (
+          <ReviewModal 
+              teacher={teacher} 
+              onClose={() => setIsReviewModalOpen(false)} 
+              onReviewAdded={() => {
+                  setIsReviewModalOpen(false);
+                  getTeacherReviews(id).then(setReviews);
+              }} 
+          />
+      )}
     </div>
   );
 }
