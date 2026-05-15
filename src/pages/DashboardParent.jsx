@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getContracts, rateContract } from '../services/api';
 import ProfileEditor from '../components/ProfileEditor';
 import ChatInterface from '../components/ChatInterface';
-import { getUserNotifications } from '../services/api';
+import { getUserNotifications, deleteNotification } from '../services/api';
 import { Bell, MessageSquare } from 'lucide-react';
 
 export default function DashboardParent() {
@@ -52,6 +52,15 @@ export default function DashboardParent() {
     }
   };
 
+  const handleDismissNotification = async (id) => {
+     try {
+         await deleteNotification(id);
+         setNotifications(notifications.filter(n => n.id !== id));
+     } catch (err) {
+         console.error("Erreur fermeture notification", err);
+     }
+  };
+
   return (
     <div className="container dashboard-layout animate-fade-in">
       <h1 className="page-title">Espace Parent - Tableau de bord</h1>
@@ -63,11 +72,14 @@ export default function DashboardParent() {
           </h3>
           <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
             {notifications.map(notif => (
-              <li key={notif.id} style={{ padding: '0.8rem', backgroundColor: 'white', borderRadius: 'var(--radius-sm)', border: '1px solid #fed7aa' }}>
-                <p style={{ margin: 0, fontSize: '0.95rem' }}>{notif.message}</p>
-                <small style={{ color: 'var(--color-text-light)', fontSize: '0.8rem' }}>
-                  {new Date(notif.created_at).toLocaleString()}
-                </small>
+              <li key={notif.id} style={{ padding: '0.8rem', backgroundColor: 'white', borderRadius: 'var(--radius-sm)', border: '1px solid #fed7aa', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                    <p style={{ margin: 0, fontSize: '0.95rem' }}>{notif.message}</p>
+                    <small style={{ color: 'var(--color-text-light)', fontSize: '0.8rem' }}>
+                      {new Date(notif.created_at).toLocaleString()}
+                    </small>
+                </div>
+                <button onClick={() => handleDismissNotification(notif.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: '1.2rem', padding: '0 0.5rem' }}>&times;</button>
               </li>
             ))}
           </ul>

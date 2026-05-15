@@ -100,11 +100,8 @@ export default function DashboardAdmin() {
         toast.error("Le motif est obligatoire.");
         return;
     }
-    setConfirmAction({
-      title: "Confirmer la suppression",
-      message: "Voulez-vous vraiment supprimer ce contrat ?",
-      onConfirm: () => executeDeleteContract(motiveModal.contractId, motiveModal.motive),
-    });
+    // On exécute directement la suppression, le modal sert déjà de confirmation
+    executeDeleteContract(motiveModal.contractId, motiveModal.motive);
   };
 
   const executeDeleteContract = async (id, motive) => {
@@ -113,10 +110,9 @@ export default function DashboardAdmin() {
       toast.success('Contrat supprimé avec notification envoyée.');
       fetchData();
     } catch (error) {
-      toast.error("Erreur lors de la suppression du contrat.");
+      toast.error("Erreur lors de la suppression du contrat : " + (error.message || ""));
       console.error(error);
     } finally {
-      setConfirmAction(null);
       setMotiveModal({ isOpen: false, contractId: null, motive: '' });
     }
   };
@@ -143,7 +139,8 @@ export default function DashboardAdmin() {
         toast.success("Message global envoyé avec succès.");
         setGlobalMessageModal({ isOpen: false, message: '' });
     } catch (error) {
-        toast.error("Erreur lors de l'envoi du message global.");
+        toast.error("Erreur lors de l'envoi du message : " + (error.message || ""));
+        console.error(error);
     }
   };
   // Filtrage des données

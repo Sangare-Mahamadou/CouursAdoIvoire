@@ -181,6 +181,16 @@ export const getUserNotifications = async () => {
     return data;
 };
 
+export const deleteNotification = async (notifId) => {
+    const response = await fetch(`${API_URL}/users/notifications/${notifId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur");
+    return data;
+};
+
 export const getProfile = async () => {
     const response = await fetch(`${API_URL}/users/profile`, {
         headers: getAuthHeaders(),

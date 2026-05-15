@@ -104,4 +104,18 @@ router.get('/notifications', authMiddleware, async (req, res) => {
     }
 });
 
+router.delete('/notifications/:id', authMiddleware, async (req, res) => {
+    try {
+        const notifId = req.params.id;
+        await pool.query(
+            'DELETE FROM notifications WHERE id = $1 AND user_id = $2',
+            [notifId, req.user.id]
+        );
+        res.json({ message: "Notification supprimée." });
+    } catch (error) {
+        console.error("Erreur suppression notification:", error);
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+});
+
 module.exports = router;
