@@ -23,7 +23,7 @@ export default function ReviewModal({ teacher, onClose, onReviewAdded }) {
       }
       onClose();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Une erreur s'est produite.");
+      toast.error(error.message || "Une erreur s'est produite.");
     } finally {
       setIsSubmitting(false);
     }

@@ -264,6 +264,15 @@ export const sendMessage = async (receiverId, content) => {
     return data;
 };
 
+export const getUnreadCount = async () => {
+    const response = await fetch(`${API_URL}/messages/unread`, {
+        headers: getAuthHeaders(),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur");
+    return data;
+};
+
 export const sendGlobalMessageAdmin = async (message) => {
     const response = await fetch(`${API_URL}/admin/global-message`, {
         method: 'POST',

@@ -187,6 +187,15 @@ exports.addReview = async (req, res) => {
             return res.status(403).json({ message: "Vous devez avoir eu un contrat avec cet enseignant pour laisser un avis." });
         }
 
+        const { rows: existingReviews } = await pool.query(
+            'SELECT id FROM reviews WHERE teacher_id = $1 AND author_id = $2',
+            [teacherId, authorId]
+        );
+
+        if (existingReviews.length > 0) {
+            return res.status(400).json({ message: "Vous avez déjà laissé un avis pour cet enseignant." });
+        }
+
         // Insérer l'avis
         await pool.query(
             'INSERT INTO reviews (teacher_id, author_id, rating, comment) VALUES ($1, $2, $3, $4)',

@@ -137,9 +137,10 @@ exports.sendGlobalMessage = async (req, res) => {
         }
 
         const { rows: users } = await pool.query("SELECT id FROM users WHERE role != 'admin'");
+        const finalMessage = message + "\n\n— L'équipe AlloProf CI";
         
         for (const user of users) {
-            await pool.query('INSERT INTO notifications (user_id, message) VALUES ($1, $2)', [user.id, message]);
+            await pool.query('INSERT INTO notifications (user_id, message) VALUES ($1, $2)', [user.id, finalMessage]);
         }
 
         res.json({ message: "Message global envoyé avec succès." });

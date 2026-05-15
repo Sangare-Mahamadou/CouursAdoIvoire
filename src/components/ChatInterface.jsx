@@ -67,7 +67,7 @@ export default function ChatInterface() {
     };
 
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     };
 
     return (
@@ -104,7 +104,14 @@ export default function ChatInterface() {
                                     )}
                                 </div>
                                 <div>
-                                    <h4 style={{ margin: 0, fontSize: '1rem' }}>{contact.name}</h4>
+                                    <h4 style={{ margin: 0, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        {contact.name}
+                                        {parseInt(contact.unread_count) > 0 && (
+                                            <span style={{ backgroundColor: '#ef4444', color: 'white', fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '1rem' }}>
+                                                {contact.unread_count}
+                                            </span>
+                                        )}
+                                    </h4>
                                     <small style={{ color: 'var(--color-text-light)' }}>{contact.role === 'admin' ? 'Administration' : (contact.role === 'teacher' ? 'Enseignant' : 'Parent')}</small>
                                 </div>
                             </div>

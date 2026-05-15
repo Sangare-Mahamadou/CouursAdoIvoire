@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getContracts, updateContractStatus } from '../services/api';
 import ProfileEditor from '../components/ProfileEditor';
 import ChatInterface from '../components/ChatInterface';
-import { getUserNotifications, deleteNotification } from '../services/api';
+import { getUserNotifications, deleteNotification, getUnreadCount } from '../services/api';
 import { Bell, MessageSquare } from 'lucide-react';
 
 export default function DashboardTeacher() {
@@ -12,6 +12,7 @@ export default function DashboardTeacher() {
   const [expandedContract, setExpandedContract] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [unreadMsgCount, setUnreadMsgCount] = useState(0);
 
   const fetchContracts = useCallback(() => {
     getContracts()
@@ -38,6 +39,14 @@ export default function DashboardTeacher() {
     getUserNotifications()
       .then(data => setNotifications(data))
       .catch(err => console.error("Erreur notifications", err));
+      
+    // Fetch unread messages count periodically
+    const fetchUnread = () => {
+        getUnreadCount().then(data => setUnreadMsgCount(data.count)).catch(() => {});
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 10000);
+    return () => clearInterval(interval);
   }, [fetchContracts]);
 
   const handleStatusChange = async (id, newStatus) => {
@@ -87,8 +96,13 @@ export default function DashboardTeacher() {
         <button onClick={() => setActiveTab('dashboard')} className={`btn ${activeTab === 'dashboard' ? 'btn-primary' : 'btn-outline'}`}>
           Tableau de Bord
         </button>
-        <button onClick={() => setActiveTab('messages')} className={`btn ${activeTab === 'messages' ? 'btn-primary' : 'btn-outline'}`} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <button onClick={() => { setActiveTab('messages'); setUnreadMsgCount(0); }} className={`btn ${activeTab === 'messages' ? 'btn-primary' : 'btn-outline'}`} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', position: 'relative' }}>
           <MessageSquare size={18} /> Messagerie
+          {unreadMsgCount > 0 && activeTab !== 'messages' && (
+              <span style={{ position: 'absolute', top: '-8px', right: '-8px', backgroundColor: '#ef4444', color: 'white', borderRadius: '50%', width: '20px', height: '20px', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {unreadMsgCount}
+              </span>
+          )}
         </button>
       </div>
 

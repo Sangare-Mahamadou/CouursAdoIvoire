@@ -117,16 +117,22 @@ export default function DashboardAdmin() {
     }
   };
 
-  const handleDeleteReview = async (id) => {
-    if (window.confirm("Supprimer cet avis de la plateforme ?")) {
-      try {
-        await deletePlatformReviewAdmin(id);
-        toast.success("Avis supprimé.");
-        fetchData();
-      } catch (error) {
-        toast.error("Erreur de suppression");
+  const handleDeleteReview = (id) => {
+    setConfirmAction({
+      title: "Supprimer l'avis",
+      message: "Êtes-vous sûr de vouloir supprimer cet avis de la plateforme ?",
+      onConfirm: async () => {
+        try {
+          await deletePlatformReviewAdmin(id);
+          toast.success("Avis supprimé.");
+          fetchData();
+        } catch (error) {
+          toast.error("Erreur de suppression");
+        } finally {
+          setConfirmAction(null);
+        }
       }
-    }
+    });
   };
   const handleSendGlobalMessage = async (e) => {
     e.preventDefault();

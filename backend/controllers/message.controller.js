@@ -56,7 +56,8 @@ exports.getContacts = async (req, res) => {
 
         if (userRole === 'parent') {
             query = `
-                SELECT DISTINCT u.id, u.name, u.role, tp.profile_picture_url
+                SELECT DISTINCT u.id, u.name, u.role, tp.profile_picture_url,
+                (SELECT COUNT(*) FROM messages m WHERE m.sender_id = u.id AND m.receiver_id = $1 AND m.is_read = FALSE) as unread_count
                 FROM users u
                 JOIN contracts c ON c.teacher_id = u.id
                 LEFT JOIN teachers_profile tp ON u.id = tp.user_id
@@ -64,7 +65,8 @@ exports.getContacts = async (req, res) => {
             `;
         } else if (userRole === 'teacher') {
             query = `
-                SELECT DISTINCT u.id, u.name, u.role, NULL as profile_picture_url
+                SELECT DISTINCT u.id, u.name, u.role, NULL as profile_picture_url,
+                (SELECT COUNT(*) FROM messages m WHERE m.sender_id = u.id AND m.receiver_id = $1 AND m.is_read = FALSE) as unread_count
                 FROM users u
                 JOIN contracts c ON c.parent_id = u.id
                 WHERE c.teacher_id = $1 AND c.status IN ('pending', 'active', 'completed')
@@ -72,7 +74,8 @@ exports.getContacts = async (req, res) => {
         } else if (userRole === 'admin') {
             // Admin can see everyone ? For now let's just allow admin to get teachers and parents
             query = `
-                SELECT id, name, role, NULL as profile_picture_url
+                SELECT id, name, role, NULL as profile_picture_url,
+                (SELECT COUNT(*) FROM messages m WHERE m.sender_id = users.id AND m.receiver_id = $1 AND m.is_read = FALSE) as unread_count
                 FROM users
                 WHERE role != 'admin'
             `;

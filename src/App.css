@@ -396,7 +396,10 @@
 
 /* Dashboard utils */
 .dashboard-layout { padding: 3rem 0; display:flex; flex-direction:column; gap:2rem; }
-.page-title { margin-bottom: 2rem; font-size: 2rem; border-bottom: 2px solid var(--color-primary-light); padding-bottom: 0.5rem; display: inline-block;}
+.page-title { margin-bottom: 2rem; font-size: 1.75rem; border-bottom: 2px solid var(--color-primary-light); padding-bottom: 0.5rem; display: inline-block;}
+@media (max-width: 768px) {
+  .page-title { font-size: 1.4rem; }
+}
 .platform-feedback-fab {
   position: fixed;
   bottom: 2rem;
