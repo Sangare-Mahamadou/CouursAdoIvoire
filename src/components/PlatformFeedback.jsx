@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { Star } from 'lucide-react';
+import { addPlatformReview } from '../services/api';
 
 export default function PlatformFeedback() {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,15 +16,18 @@ export default function PlatformFeedback() {
       return;
     }
     setIsSubmitting(true);
-    // Simuler un appel API
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log('Avis sur la plateforme:', { rating, comment });
     
-    setIsSubmitting(false);
-    setIsOpen(false);
-    setRating(0);
-    setComment('');
-    toast.success('Merci pour votre avis !');
+    try {
+      await addPlatformReview({ rating, comment });
+      setIsOpen(false);
+      setRating(0);
+      setComment('');
+      toast.success('Merci pour votre avis !');
+    } catch (error) {
+      toast.error("Veuillez vous connecter pour laisser un avis, ou une erreur s'est produite.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) {

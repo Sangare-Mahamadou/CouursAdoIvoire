@@ -20,6 +20,8 @@ app.use('/api/teachers', teacherRoutes);
 app.use('/api/contracts', contractRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/users', userRoutes);
+const platformReviewRoutes = require('./routes/platformReview.routes');
+app.use('/api/platform-reviews', platformReviewRoutes);
 
 app.get('/', (req, res) => {
     res.send('API AlloProf CI en ligne !');

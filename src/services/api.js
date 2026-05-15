@@ -133,9 +133,47 @@ export const getAllAdminContracts = async () => {
     return data;
 };
 
-export const deleteContractByAdmin = async (id) => {
+export const deleteContractByAdmin = async (id, motive) => {
     const response = await fetch(`${API_URL}/admin/contracts/${id}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ motive })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur");
+    return data;
+};
+
+export const getPlatformReviews = async () => {
+    const response = await fetch(`${API_URL}/platform-reviews`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur");
+    return data;
+};
+
+export const addPlatformReview = async (reviewData) => {
+    const response = await fetch(`${API_URL}/platform-reviews`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(reviewData)
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur");
+    return data;
+};
+
+export const deletePlatformReviewAdmin = async (id) => {
+    const response = await fetch(`${API_URL}/admin/platform-reviews/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur");
+    return data;
+};
+
+export const getUserNotifications = async () => {
+    const response = await fetch(`${API_URL}/users/notifications`, {
         headers: getAuthHeaders(),
     });
     const data = await response.json();

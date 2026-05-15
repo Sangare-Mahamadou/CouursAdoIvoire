@@ -4,7 +4,7 @@ exports.getAllTeachers = async (req, res) => {
     try {
         const { rows: teachers } = await pool.query(`
             SELECT u.id, u.name, u.phone, u.city,
-                   tp.diploma_level as "diploma",
+                   tp.diploma_level,
                    tp.subjects, tp.description, tp.rating, tp.reviews_count as "reviewsCount",
                    tp.availability_days, tp.profile_picture_url
             FROM users u

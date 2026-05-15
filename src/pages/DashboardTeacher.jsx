@@ -1,12 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getContracts, updateContractStatus } from '../services/api';
 import ProfileEditor from '../components/ProfileEditor';
+import { getUserNotifications } from '../services/api';
+import { Bell } from 'lucide-react';
 
 export default function DashboardTeacher() {
   const [contracts, setContracts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState({ estimatedRevenue: 0 });
   const [expandedContract, setExpandedContract] = useState(null);
+  const [notifications, setNotifications] = useState([]);
 
   const fetchContracts = useCallback(() => {
     getContracts()
@@ -29,6 +32,10 @@ export default function DashboardTeacher() {
 
   useEffect(() => {
     fetchContracts();
+    
+    getUserNotifications()
+      .then(data => setNotifications(data))
+      .catch(err => console.error("Erreur notifications", err));
   }, [fetchContracts]);
 
   const handleStatusChange = async (id, newStatus) => {
@@ -43,6 +50,24 @@ export default function DashboardTeacher() {
   return (
     <div className="container dashboard-layout animate-fade-in">
       <h1 className="page-title">Espace Enseignant - Tableau de bord</h1>
+
+      {notifications.length > 0 && (
+        <div className="card" style={{ borderLeft: '4px solid var(--color-primary)', backgroundColor: '#fff7ed', marginBottom: '1rem' }}>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-primary-dark)', marginBottom: '1rem' }}>
+            <Bell size={20} /> Notifications
+          </h3>
+          <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+            {notifications.map(notif => (
+              <li key={notif.id} style={{ padding: '0.8rem', backgroundColor: 'white', borderRadius: 'var(--radius-sm)', border: '1px solid #fed7aa' }}>
+                <p style={{ margin: 0, fontSize: '0.95rem' }}>{notif.message}</p>
+                <small style={{ color: 'var(--color-text-light)', fontSize: '0.8rem' }}>
+                  {new Date(notif.created_at).toLocaleString()}
+                </small>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <ProfileEditor />
       

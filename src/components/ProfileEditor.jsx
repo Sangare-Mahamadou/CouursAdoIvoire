@@ -177,7 +177,7 @@ export default function ProfileEditor() {
                                 <div className="form-group">
                                     <label>Niveau d'étude</label>
                                     <select value={formData.diploma_level} onChange={e => setFormData({...formData, diploma_level: e.target.value})}>
-                                        {diplomas.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                                        {diplomas.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
                                     </select>
                                 </div>
                                 <div className="form-group">

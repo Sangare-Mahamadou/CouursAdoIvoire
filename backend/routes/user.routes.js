@@ -11,7 +11,7 @@ router.get('/profile', authMiddleware, async (req, res) => {
     try {
         const { rows: users } = await pool.query(`
             SELECT u.id, u.name, u.email, u.phone, u.city, u.role,
-                   tp.diploma_level, tp.subjects, tp.description, tp.profile_picture_url
+                   tp.diploma_level, tp.subjects, tp.description, tp.availability_days, tp.profile_picture_url
             FROM users u
             LEFT JOIN teachers_profile tp ON u.id = tp.user_id
             WHERE u.id = $1
@@ -38,7 +38,7 @@ router.get('/profile', authMiddleware, async (req, res) => {
 
 router.put('/profile', authMiddleware, upload.single('profile_picture'), async (req, res) => {
     try {
-        const { name, phone, email, city, diploma_level, subjects, description } = req.body;
+        const { name, phone, email, city, diploma_level, subjects, description, availability_days } = req.body;
         const userId = req.user.id;
 
         const { rows: existingUsers } = await pool.query(
@@ -68,17 +68,18 @@ router.put('/profile', authMiddleware, upload.single('profile_picture'), async (
             const fields = [
                 'diploma_level = $1',
                 'subjects = $2',
-                'description = $3'
+                'description = $3',
+                'availability_days = $4'
             ];
-            const values = [diploma_level, subjects || '[]', description || '', userId];
+            const values = [diploma_level, subjects || '[]', description || '', availability_days || 5, userId];
 
             if (profilePictureUrl) {
-                fields.push('profile_picture_url = $5');
+                fields.push('profile_picture_url = $6');
                 values.push(profilePictureUrl);
             }
 
             await pool.query(
-                `UPDATE teachers_profile SET ${fields.join(', ')} WHERE user_id = $4`,
+                `UPDATE teachers_profile SET ${fields.join(', ')} WHERE user_id = $5`,
                 values
             );
         }
@@ -86,6 +87,19 @@ router.put('/profile', authMiddleware, upload.single('profile_picture'), async (
         res.json({ message: "Profil mis à jour avec succès." });
     } catch (error) {
         console.error("Erreur mise à jour profil:", error);
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+});
+
+router.get('/notifications', authMiddleware, async (req, res) => {
+    try {
+        const { rows } = await pool.query(
+            'SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC',
+            [req.user.id]
+        );
+        res.json(rows);
+    } catch (error) {
+        console.error("Erreur récupération notifications:", error);
         res.status(500).json({ message: "Erreur serveur" });
     }
 });

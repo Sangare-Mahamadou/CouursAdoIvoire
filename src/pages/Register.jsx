@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { diplomas, AVAILABLE_SUBJECTS } from '../data/mockData'; 
@@ -131,48 +132,81 @@ export default function Register() {
         )}
 
         <form onSubmit={handleRegister}>
-          <div className="form-group">
-            <label>Nom et Prénoms</label>
-            <input type="text" placeholder="Ex: Kouamé Jean" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-          </div>
-          <div className="form-group">
-            <label>Adresse E-mail</label>
-            <input type="email" placeholder="votre.email@exemple.com" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
-          </div>
-          <div className="form-group">
-            <label>N° de téléphone (Côte d'Ivoire)</label>
-            <input type="text" placeholder="+225 00 00 00 00 00" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
-          </div>
-          <div className="form-group">
-            <label>Ville / Commune</label>
-            <input type="text" placeholder="Ex: Abidjan (Cocody)" required value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="form-group">
+              <label>Nom et Prénoms</label>
+              <input type="text" placeholder="Ex: Kouamé Jean" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label>Adresse E-mail</label>
+              <input type="email" placeholder="votre.email@exemple.com" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label>N° de téléphone (Côte d'Ivoire)</label>
+              <input type="text" placeholder="+225 00 00 00 00 00" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label>Ville / Commune</label>
+              <input type="text" placeholder="Ex: Abidjan / Cocody" required value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} />
+            </div>
           </div>
 
           {role === 'teacher' && (
-            <div className="form-group animate-fade-in" style={{ padding: '1.5rem', backgroundColor: 'var(--color-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+            <div className="form-group animate-fade-in" 
+                style={{ padding: '1.5rem', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #ddd' }}>
               
-              <label style={{ color: 'var(--color-primary)', fontWeight: 'bold' }}>Matières enseignées</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem', marginTop: '0.5rem' }}>
+              <label style={{ color: '#6b6b6c', fontWeight: 'bold', fontSize: '1rem' }}>
+                Matières enseignées
+              </label>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', margin: '1rem 0' }}>
                 {AVAILABLE_SUBJECTS.map((sub, idx) => {
                   const isChecked = formData.subjects.some(s => s.name === sub);
                   const subjectObj = formData.subjects.find(s => s.name === sub);
-                  
+
                   return (
-                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '0.5rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', backgroundColor: isChecked ? '#eff6ff' : 'transparent' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', cursor: 'pointer', fontWeight: isChecked ? '600' : 'normal' }}>
+                    <div key={idx} 
+                        style={{ 
+                          display: 'flex', 
+                          flexDirection: 'column', 
+                          gap: '0.6rem', 
+                          padding: '0.8rem', 
+                          border: isChecked ? '2px solid #009E60' : '1px solid #ddd', 
+                          borderRadius: '12px', 
+                          backgroundColor: isChecked ? '#f0f9ff' : '#fafafa', 
+                          transition: 'all 0.3s ease',
+                          boxShadow: isChecked ? '0 2px 6px rgba(0,0,0,0.1)' : 'none'
+                        }}>
+                      
+                      <label style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '0.6rem', 
+                        fontSize: '0.95rem', 
+                        cursor: 'pointer', 
+                        fontWeight: isChecked ? '600' : 'normal',
+                        color: isChecked ? '#009E60' : '#333'
+                      }}>
                         <input 
-                           type="checkbox" 
-                           checked={isChecked} 
-                           onChange={(e) => {
-                             if (e.target.checked) {
-                               setFormData(prev => ({ ...prev, subjects: [...prev.subjects, { name: sub, price: '' }] }));
-                             } else {
-                               setFormData(prev => ({ ...prev, subjects: prev.subjects.filter(s => s.name !== sub) }));
-                             }
-                           }} 
+                          type="checkbox" 
+                          checked={isChecked} 
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData(prev => ({ ...prev, subjects: [...prev.subjects, { name: sub, price: '' }] }));
+                            } else {
+                              setFormData(prev => ({ ...prev, subjects: prev.subjects.filter(s => s.name !== sub) }));
+                            }
+                          }} 
+                          style={{ 
+                            width: '18px', 
+                            height: '18px', 
+                            accentColor: '#009E60', 
+                            cursor: 'pointer' 
+                          }}
                         />
                         {sub}
                       </label>
+
                       {isChecked && (
                         <input 
                           type="number" 
@@ -186,7 +220,14 @@ export default function Register() {
                               subjects: prev.subjects.map(s => s.name === sub ? { ...s, price: newPrice } : s)
                             }));
                           }}
-                          style={{ padding: '0.4rem', fontSize: '0.875rem', width: '100%', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)' }}
+                          style={{ 
+                            padding: '0.5rem', 
+                            fontSize: '0.9rem', 
+                            width: '100%', 
+                            border: '1px solid #ddd', 
+                            borderRadius: '8px',
+                            outlineColor: '#2563eb' 
+                          }}
                         />
                       )}
                     </div>
@@ -207,8 +248,8 @@ export default function Register() {
               </div>
 
               {/* Champ pour ajouter une matière personnalisée */}
-              <div style={{ marginTop: '0.5rem', marginBottom: '1.5rem', padding: '1rem', border: '1px dashed var(--color-primary)', borderRadius: 'var(--radius-sm)', backgroundColor: 'white' }}>
-                <label style={{ fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '0.5rem', display: 'block', color: 'var(--color-primary-dark)' }}>+ Ajouter une autre matière :</label>
+              <div style={{ marginTop: '0.5rem', marginBottom: '1.5rem', padding: '1rem', border: '2px dashed #009E60', borderRadius: 'var(--radius-sm)', backgroundColor: 'white' }}>
+                <label style={{ fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '0.5rem', display: 'block', color: '#009E60' }}>+ Ajouter une autre matière :</label>
                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
                   <input 
                     type="text" 
@@ -224,7 +265,7 @@ export default function Register() {
                     onChange={e => setCustomPrice(e.target.value)} 
                     style={{ flex: '1 1 120px', padding: '0.4rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)' }}
                   />
-                  <button type="button" onClick={handleAddCustomSubject} className="btn btn-primary" style={{ padding: '0.4rem 1rem' }}>Ajouter</button>
+                  <button type="button" onClick={handleAddCustomSubject} className="btn btn-primary" style={{ padding: '0.4rem 1rem', borderColor: '#009E60',backgroundColor: '#009E60' }}>Ajouter</button>
                 </div>
 
                 {/* Affichage des matières personnalisées ajoutées */}
@@ -240,17 +281,48 @@ export default function Register() {
                 )}
               </div>
 
-              <label style={{ color: 'var(--color-primary)', fontWeight: 'bold', display: 'block' }}>Photo de profil (Obligatoire)</label>
-              <input 
-                type="file" 
-                accept="image/*" 
-                capture="user" 
-                required 
-                onChange={e => setProfilePicture(e.target.files[0])} 
-                style={{ marginBottom: '1.5rem', width: '100%', padding: '0.5rem', backgroundColor: 'white', borderRadius: 'var(--radius-sm)' }}
-              />
+              <div style={{ marginBottom: '1.5rem' }}>
+                  <label 
+                    style={{ 
+                      color: '#6b6b6c', 
+                      fontWeight: 'bold', 
+                      display: 'block', 
+                      marginBottom: '0.5rem',
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    Photo de profil (Obligatoire)
+                  </label>
 
-              <label style={{ color: 'var(--color-primary)', fontWeight: 'bold' }}>Votre dernier diplôme obtenu</label>
+                  <div 
+                    style={{ 
+                      border: '2px dashed #009E60', 
+                      borderRadius: '12px', 
+                      padding: '1rem', 
+                      textAlign: 'center', 
+                      backgroundColor: '#f9fafb',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onClick={() => document.getElementById('profileUpload').click()}
+                  >
+                    <p style={{ margin: 0, color: '#555', fontSize: '0.9rem' }}>
+                      📷 Cliquez ou glissez une image ici
+                    </p>
+                    <input 
+                      id="profileUpload"
+                      type="file" 
+                      accept="image/*" 
+                      capture="user" 
+                      required 
+                      onChange={e => setProfilePicture(e.target.files[0])} 
+                      style={{ display: 'none' }}
+                    />
+                  </div>
+                </div>
+
+
+              <label style={{ color: '#6b6b6c' , fontWeight: 'bold' }}>Votre dernier diplôme obtenu</label>
               <select required value={formData.diploma_level} onChange={handleDiplomaChange}>
                 <option value="">Sélectionnez votre diplôme...</option>
                 {diplomas.map(d => (
@@ -262,8 +334,26 @@ export default function Register() {
 
           <div className="form-group">
             <label>Mot de passe</label>
-            <input type="password" placeholder="••••••••" required value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
+            <input 
+              type="password" 
+              placeholder="••••••••" 
+              required 
+              value={formData.password} 
+              onChange={e => setFormData({ ...formData, password: e.target.value })} 
+            />
           </div>
+
+          <div className="form-group">
+            <label>Confirmer le mot de passe</label>
+            <input 
+              type="password" 
+              placeholder="••••••••" 
+              required 
+              value={formData.confirmPassword} 
+              onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })} 
+            />
+          </div>
+
           <button type="submit" className="btn btn-secondary" style={{ width: '100%', marginTop: '1rem', padding: '1rem' }} disabled={isLoading}>
             {isLoading ? "Enregistrement en cours..." : "M'inscrire gratuitement"}
           </button>

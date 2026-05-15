@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCurrentUser, logoutUser, getAllAdminContracts, deleteContractByAdmin } from '../services/api';
+import { getCurrentUser, logoutUser, getAllAdminContracts, deleteContractByAdmin, getPlatformReviews, deletePlatformReviewAdmin } from '../services/api';
 import ConfirmDialog from '../components/ConfirmDialog';
 import toast from 'react-hot-toast';
 
@@ -8,8 +8,9 @@ export default function DashboardAdmin() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [contracts, setContracts] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('parents'); // 'parents', 'teachers', 'contracts', 'stats'
+  const [activeTab, setActiveTab] = useState('parents'); // 'parents', 'teachers', 'contracts', 'reviews', 'stats'
   const [confirmAction, setConfirmAction] = useState(null);
   
   let envUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -44,6 +45,14 @@ export default function DashboardAdmin() {
       // Récupération des contrats
       const dataContracts = await getAllAdminContracts();
       setContracts(dataContracts);
+
+      // Récupération des avis
+      try {
+        const dataReviews = await getPlatformReviews();
+        setReviews(dataReviews);
+      } catch (err) {
+        console.error("Erreur avis", err);
+      }
 
     } catch (error) {
       console.error(error);
@@ -81,23 +90,41 @@ export default function DashboardAdmin() {
   };
 
   const handleDeleteContract = (id) => {
+    const motive = window.prompt("Veuillez saisir le motif de la suppression pour informer les utilisateurs concernés:");
+    if (motive === null) return; // Annulé
+    if (!motive.trim()) {
+        toast.error("Le motif est obligatoire.");
+        return;
+    }
     setConfirmAction({
       title: "Confirmer la suppression",
       message: "Voulez-vous vraiment supprimer ce contrat ?",
-      onConfirm: () => executeDeleteContract(id),
+      onConfirm: () => executeDeleteContract(id, motive),
     });
   };
 
-  const executeDeleteContract = async (id) => {
+  const executeDeleteContract = async (id, motive) => {
     try {
-      await deleteContractByAdmin(id);
-      toast.success('Contrat supprimé.');
+      await deleteContractByAdmin(id, motive);
+      toast.success('Contrat supprimé avec notification envoyée.');
       fetchData();
     } catch (error) {
       toast.error("Erreur lors de la suppression du contrat.");
       console.error(error);
     } finally {
       setConfirmAction(null);
+    }
+  };
+
+  const handleDeleteReview = async (id) => {
+    if (window.confirm("Supprimer cet avis de la plateforme ?")) {
+      try {
+        await deletePlatformReviewAdmin(id);
+        toast.success("Avis supprimé.");
+        fetchData();
+      } catch (error) {
+        toast.error("Erreur de suppression");
+      }
     }
   };
 
@@ -140,6 +167,9 @@ export default function DashboardAdmin() {
         </button>
         <button onClick={() => setActiveTab('contracts')} className={`btn ${activeTab === 'contracts' ? 'btn-primary' : 'btn-outline'}`}>
           Relations ({contracts.length})
+        </button>
+        <button onClick={() => setActiveTab('reviews')} className={`btn ${activeTab === 'reviews' ? 'btn-primary' : 'btn-outline'}`}>
+          Avis Plateforme ({reviews.length})
         </button>
         <button onClick={() => setActiveTab('stats')} className={`btn ${activeTab === 'stats' ? 'btn-primary' : 'btn-outline'}`}>
           Statistiques
@@ -257,6 +287,45 @@ export default function DashboardAdmin() {
                           <td style={{ padding: '1rem' }}><span className={`badge status-${c.status}`}>{c.status}</span></td>
                           <td style={{ padding: '1rem' }}>
                             <button onClick={() => handleDeleteContract(c.id)} className="btn btn-danger" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
+                              Supprimer
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* ONGLET : AVIS PLATEFORME */}
+          {activeTab === 'reviews' && (
+            <div className="card glass animate-fade-in">
+              <h2 style={{ marginBottom: '1.5rem', color: 'var(--color-primary)' }}>Avis sur la Plateforme</h2>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
+                      <th style={{ padding: '1rem' }}>Auteur</th>
+                      <th style={{ padding: '1rem' }}>Note</th>
+                      <th style={{ padding: '1rem' }}>Commentaire</th>
+                      <th style={{ padding: '1rem' }}>Date</th>
+                      <th style={{ padding: '1rem' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reviews.length === 0 ? (
+                      <tr><td colSpan="5" style={{ padding: '2rem', textAlign: 'center' }}>Aucun avis laissé.</td></tr>
+                    ) : (
+                      reviews.map(r => (
+                        <tr key={r.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                          <td style={{ padding: '1rem' }}>{r.author_name}</td>
+                          <td style={{ padding: '1rem' }}>{r.rating}/5</td>
+                          <td style={{ padding: '1rem' }}>{r.comment || '-'}</td>
+                          <td style={{ padding: '1rem' }}>{new Date(r.created_at).toLocaleDateString()}</td>
+                          <td style={{ padding: '1rem' }}>
+                            <button onClick={() => handleDeleteReview(r.id)} className="btn btn-danger" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
                               Supprimer
                             </button>
                           </td>

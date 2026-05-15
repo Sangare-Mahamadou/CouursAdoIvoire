@@ -1,7 +1,17 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle, GraduationCap, MapPin, Search } from 'lucide-react';
+import { ArrowRight, CheckCircle, GraduationCap, MapPin, Search, Star } from 'lucide-react';
+import { getPlatformReviews } from '../services/api';
 
 export default function Home() {
+  const [reviews, setReviews] = useState([]);
+
+  useEffect(() => {
+    getPlatformReviews().then(data => {
+      setReviews(data);
+    }).catch(err => console.error("Erreur avis", err));
+  }, []);
+
   return (
     <div className="animate-fade-in">
       <section className="hero">
@@ -46,6 +56,25 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {reviews.length > 0 && (
+        <section className="container" style={{ padding: '0 1.5rem', marginBottom: '4rem' }}>
+          <h2 style={{ textAlign: 'center', marginBottom: '2rem', fontSize: '2rem' }}>Avis de nos utilisateurs</h2>
+          <div className="grid grid-cols-3">
+            {reviews.slice(0, 6).map((review) => (
+              <div key={review.id} className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.2rem', color: '#f59e0b' }}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} size={16} fill={star <= review.rating ? '#f59e0b' : 'none'} />
+                  ))}
+                </div>
+                <p style={{ fontStyle: 'italic', color: 'var(--color-text-light)', flex: 1 }}>"{review.comment}"</p>
+                <div style={{ fontWeight: 'bold', fontSize: '0.9rem', marginTop: '0.5rem' }}>- {review.author_name}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
