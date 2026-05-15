@@ -18,16 +18,24 @@ export default function TeacherProfile() {
     const fetchTeacherData = async () => {
       try {
         setIsLoading(true);
-        const [teacherData, reviewsData] = await Promise.all([
-          getTeacherById(id),
-          getTeacherReviews(id),
-        ]);
+        const teacherData = await getTeacherById(id);
         setTeacher(teacherData);
-        setReviews(reviewsData);
+
+        try {
+          const reviewsData = await getTeacherReviews(id);
+          setReviews(reviewsData);
+        } catch (err) {
+          console.error("Erreur de chargement des avis:", err);
+          setReviews([]);
+        }
         
         if (user && user.role === 'parent') {
-           const statusData = await checkContractStatus(id);
-           setContractStatus(statusData);
+           try {
+               const statusData = await checkContractStatus(id);
+               setContractStatus(statusData);
+           } catch (err) {
+               console.error("Erreur checkContractStatus:", err);
+           }
         }
       } catch (error) {
         console.error("Erreur de chargement du profil de l'enseignant:", error);

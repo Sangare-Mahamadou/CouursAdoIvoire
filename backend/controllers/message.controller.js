@@ -60,14 +60,14 @@ exports.getContacts = async (req, res) => {
                 FROM users u
                 JOIN contracts c ON c.teacher_id = u.id
                 LEFT JOIN teachers_profile tp ON u.id = tp.user_id
-                WHERE c.parent_id = $1 AND c.status = 'active'
+                WHERE c.parent_id = $1 AND c.status IN ('active', 'completed')
             `;
         } else if (userRole === 'teacher') {
             query = `
                 SELECT DISTINCT u.id, u.name, u.role, NULL as profile_picture_url
                 FROM users u
                 JOIN contracts c ON c.parent_id = u.id
-                WHERE c.teacher_id = $1 AND c.status = 'active'
+                WHERE c.teacher_id = $1 AND c.status IN ('active', 'completed')
             `;
         } else if (userRole === 'admin') {
             // Admin can see everyone ? For now let's just allow admin to get teachers and parents
