@@ -52,7 +52,7 @@ export default function TeacherCard({ teacher, onReviewAdded }) {
             {teacher.subjects && teacher.subjects.map((sub, idx) => (
               <span key={idx} className="subject-pill" style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                 <span style={{ fontWeight: '600' }}>{sub.name}</span>
-                <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>{sub.price} FCFA/h</span>
+                <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>{sub.price} FCFA/mois</span>
               </span>
             ))}
           </div>
