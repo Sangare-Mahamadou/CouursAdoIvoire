@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { diplomas, AVAILABLE_SUBJECTS } from '../data/mockData'; 
 import { registerUser } from '../services/api';
@@ -10,6 +10,7 @@ export default function Register() {
      name: '', email: '', phone: '', city: '', password: '', diploma_level: '', subjects: [], availability_days: 5
   });
   const [profilePicture, setProfilePicture] = useState(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
@@ -17,6 +18,18 @@ export default function Register() {
   const [customPrice, setCustomPrice] = useState('');
   
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!profilePicture) {
+      setProfilePicturePreview('');
+      return undefined;
+    }
+
+    const previewUrl = URL.createObjectURL(profilePicture);
+    setProfilePicturePreview(previewUrl);
+
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [profilePicture]);
 
   const handleDiplomaChange = (e) => {
      const selectedId = e.target.value;
@@ -310,16 +323,30 @@ export default function Register() {
                     }}
                     onClick={() => document.getElementById('profileUpload').click()}
                   >
-                    <p style={{ margin: 0, color: '#555', fontSize: '0.9rem' }}>
-                      📷 Cliquez ou glissez une image ici
-                    </p>
+                    {profilePicturePreview ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                        <img
+                          src={profilePicturePreview}
+                          alt="Aperçu de la photo sélectionnée"
+                          style={{ width: '72px', height: '72px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #009E60' }}
+                        />
+                        <div style={{ textAlign: 'left' }}>
+                          <p style={{ margin: 0, color: '#166534', fontWeight: 700 }}>Photo sélectionnée</p>
+                          <small style={{ color: '#475569' }}>{profilePicture.name}</small>
+                        </div>
+                      </div>
+                    ) : (
+                      <p style={{ margin: 0, color: '#555', fontSize: '0.9rem' }}>
+                        Cliquez pour choisir une image
+                      </p>
+                    )}
                     <input 
                       id="profileUpload"
                       type="file" 
                       accept="image/*" 
                       capture="user" 
                       required 
-                      onChange={e => setProfilePicture(e.target.files[0])} 
+                      onChange={e => setProfilePicture(e.target.files?.[0] || null)} 
                       style={{ display: 'none' }}
                     />
                   </div>

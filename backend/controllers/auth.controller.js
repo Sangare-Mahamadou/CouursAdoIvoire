@@ -11,46 +11,61 @@ exports.register = async (req, res) => {
         const requestedRole = typeof role === 'string' ? role.trim().toLowerCase() : '';
 
         if (!allowedRoles.includes(requestedRole)) {
-            return res.status(403).json({ message: "Rôle non autorisé" });
+            return res.status(403).json({ message: "Role non autorise" });
         }
 
-        // 1. Vérifier si l'utilisateur existe déjà
-        const { rows: existingUsers } = await pool.query('SELECT id FROM users WHERE phone = $1 OR email = $2', [phone, email]);
-        if (existingUsers.length > 0) {
-            return res.status(400).json({ message: "Ce numéro de téléphone ou cet email est déjà utilisé." });
-        }
-
-        // 2. Hasher le mot de passe
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        // 3. Insérer dans la table "users"
-        const { rows: result } = await pool.query(
-            'INSERT INTO users (name, email, phone, city, password_hash, role) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-            [name, email, phone, city, hashedPassword, requestedRole]
-        );
-        const newUserId = result[0].id;
-
-        // 4. Si c'est un enseignant, gérer l'upload et insérer dans la table profil
         if (requestedRole === 'teacher') {
             if (!req.file) {
                 return res.status(400).json({ message: "Une photo de profil est obligatoire pour les enseignants." });
             }
 
-            // Upload de l'image sur Vercel Blob
-            const blob = await put(`teachers/${Date.now()}-${req.file.originalname}`, req.file.buffer, {
-                access: 'public',
-                token: process.env.BLOB_READ_WRITE_TOKEN
-            });
-
-            await pool.query(
-                'INSERT INTO teachers_profile (user_id, diploma_level, subjects, profile_picture_url, description, availability_days) VALUES ($1, $2, $3, $4, $5, $6)',
-                [newUserId, diploma_level, subjects || '[]', blob.url, description || '', availability_days || 5]
-            );
+            if (!process.env.BLOB_READ_WRITE_TOKEN) {
+                return res.status(500).json({ message: "Upload image non configure. Ajoutez BLOB_READ_WRITE_TOKEN dans les variables d'environnement." });
+            }
         }
 
-        res.status(201).json({ message: "Compte créé avec succès !" });
+        const { rows: existingUsers } = await pool.query(
+            'SELECT id FROM users WHERE phone = $1 OR email = $2',
+            [phone, email]
+        );
+        if (existingUsers.length > 0) {
+            return res.status(400).json({ message: "Ce numero de telephone ou cet email est deja utilise." });
+        }
 
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        const client = await pool.connect();
+
+        try {
+            await client.query('BEGIN');
+
+            const { rows: result } = await client.query(
+                'INSERT INTO users (name, email, phone, city, password_hash, role) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+                [name, email, phone, city, hashedPassword, requestedRole]
+            );
+            const newUserId = result[0].id;
+
+            if (requestedRole === 'teacher') {
+                const blob = await put(`teachers/${Date.now()}-${req.file.originalname}`, req.file.buffer, {
+                    access: 'public',
+                    token: process.env.BLOB_READ_WRITE_TOKEN
+                });
+
+                await client.query(
+                    'INSERT INTO teachers_profile (user_id, diploma_level, subjects, profile_picture_url, description, availability_days) VALUES ($1, $2, $3, $4, $5, $6)',
+                    [newUserId, diploma_level, subjects || '[]', blob.url, description || '', availability_days || 5]
+                );
+            }
+
+            await client.query('COMMIT');
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+
+        res.status(201).json({ message: "Compte cree avec succes !" });
     } catch (error) {
         console.error("Erreur lors de l'inscription:", error);
         res.status(500).json({ message: "Erreur interne du serveur." });
@@ -61,7 +76,6 @@ exports.login = async (req, res) => {
     try {
         const { identifier, password } = req.body;
 
-        // 1. Trouver l'utilisateur (par email ou téléphone) avec son profil s'il est enseignant
         const { rows: users } = await pool.query(`
             SELECT u.*, tp.diploma_level, tp.subjects, tp.description, tp.profile_picture_url
             FROM users u
@@ -73,13 +87,11 @@ exports.login = async (req, res) => {
         }
         const user = users[0];
 
-        // 2. Vérifier le mot de passe
         const isMatch = await bcrypt.compare(password, user.password_hash);
         if (!isMatch) {
             return res.status(400).json({ message: "Identifiant ou mot de passe incorrect." });
         }
 
-        // 3. Créer le Token JWT
         const token = jwt.sign(
             { id: user.id },
             process.env.JWT_SECRET,
@@ -93,22 +105,21 @@ exports.login = async (req, res) => {
             subjects = [];
         }
 
-        res.json({ 
-            token, 
-            user: { 
-                id: user.id, 
-                name: user.name, 
-                email: user.email, 
-                role: user.role, 
-                city: user.city, 
+        res.json({
+            token,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                city: user.city,
                 phone: user.phone,
                 diploma_level: user.diploma_level,
                 subjects,
                 description: user.description,
                 profile_picture_url: user.profile_picture_url
-            } 
+            }
         });
-
     } catch (error) {
         console.error("Erreur lors de la connexion:", error);
         res.status(500).json({ message: "Erreur interne du serveur." });

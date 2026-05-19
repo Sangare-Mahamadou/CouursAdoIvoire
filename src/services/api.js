@@ -1,9 +1,30 @@
-let envUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+let envUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
 if (envUrl && !envUrl.endsWith('/api')) {
     envUrl = envUrl.endsWith('/') ? `${envUrl}api` : `${envUrl}/api`;
 }
 const API_URL = envUrl;
 let currentUser = null;
+
+const readResponse = async (response) => {
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+        return response.json();
+    }
+
+    const text = await response.text();
+    return text ? { message: text } : {};
+};
+
+const apiFetch = async (path, options) => {
+    try {
+        const response = await fetch(`${API_URL}${path}`, options);
+        const data = await readResponse(response);
+        return { response, data };
+    } catch (error) {
+        console.error('Erreur reseau API:', error);
+        throw new Error("Impossible de contacter le serveur. Vérifiez que l'API est déployée et que les variables d'environnement sont configurées.");
+    }
+};
 
 const notifyAuthChange = () => {
     window.dispatchEvent(new Event('auth-changed'));
@@ -21,19 +42,17 @@ export const registerUser = async (userData) => {
         options.headers = { 'Content-Type': 'application/json' };
     }
     
-    const response = await fetch(`${API_URL}/auth/register`, options);
-    const data = await response.json();
+    const { response, data } = await apiFetch('/auth/register', options);
     if (!response.ok) throw new Error(data.message || "Erreur lors de l'inscription");
     return data;
 };
 
 export const loginUser = async (credentials) => {
-    const response = await fetch(`${API_URL}/auth/login`, {
+    const { response, data } = await apiFetch('/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials)
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur de connexion");
     
     // Le navigateur conserve uniquement le token. Le role est relu depuis l'API.
@@ -72,8 +91,7 @@ export const loadCurrentUser = async () => {
 };
 
 export const getTeachers = async () => {
-    const response = await fetch(`${API_URL}/teachers`);
-    const data = await response.json();
+    const { response, data } = await apiFetch('/teachers');
     if (!response.ok) throw new Error(data.message || "Erreur lors de la récupération des enseignants");
     return data;
 };
@@ -88,43 +106,39 @@ const getAuthHeaders = () => {
 };
 
 export const createContract = async (contractData) => {
-    const response = await fetch(`${API_URL}/contracts`, {
+    const { response, data } = await apiFetch('/contracts', {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(contractData)
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur lors de la réservation");
     return data;
 };
 
 export const getContracts = async () => {
-    const response = await fetch(`${API_URL}/contracts`, {
+    const { response, data } = await apiFetch('/contracts', {
         headers: getAuthHeaders(),
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur récupération des contrats");
     return data;
 };
 
 export const updateContractStatus = async (contractId, status) => {
-    const response = await fetch(`${API_URL}/contracts/${contractId}`, {
+    const { response, data } = await apiFetch(`/contracts/${contractId}`, {
         method: 'PATCH',
         headers: getAuthHeaders(),
         body: JSON.stringify({ status })
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur de mise à jour");
     return data;
 };
 
 export const rateContract = async (contractId, rating) => {
-    const response = await fetch(`${API_URL}/contracts/${contractId}/rate`, {
+    const { response, data } = await apiFetch(`/contracts/${contractId}/rate`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ rating })
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur lors de la notation");
     return data;
 };
@@ -135,191 +149,171 @@ export const updateProfile = async (profileData) => {
         ? { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         : getAuthHeaders();
 
-    const response = await fetch(`${API_URL}/users/profile`, {
+    const { response, data } = await apiFetch('/users/profile', {
         method: 'PUT',
         headers,
         body: isFormData ? profileData : JSON.stringify(profileData)
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur de mise à jour du profil");
     return data;
 };
 
 export const getAllAdminContracts = async () => {
-    const response = await fetch(`${API_URL}/admin/contracts`, {
+    const { response, data } = await apiFetch('/admin/contracts', {
         headers: getAuthHeaders(),
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };
 
 export const getAdminUsers = async () => {
-    const response = await fetch(`${API_URL}/admin/users`, {
+    const { response, data } = await apiFetch('/admin/users', {
         headers: getAuthHeaders(),
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };
 
 export const deleteAdminUser = async (id) => {
-    const response = await fetch(`${API_URL}/admin/users/${id}`, {
+    const { response, data } = await apiFetch(`/admin/users/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders(),
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };
 
 export const deleteContractByAdmin = async (id, motive) => {
-    const response = await fetch(`${API_URL}/admin/contracts/${id}`, {
+    const { response, data } = await apiFetch(`/admin/contracts/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders(),
         body: JSON.stringify({ motive })
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };
 
 export const getPlatformReviews = async () => {
-    const response = await fetch(`${API_URL}/platform-reviews`);
-    const data = await response.json();
+    const { response, data } = await apiFetch('/platform-reviews');
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };
 
 export const addPlatformReview = async (reviewData) => {
-    const response = await fetch(`${API_URL}/platform-reviews`, {
+    const { response, data } = await apiFetch('/platform-reviews', {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(reviewData)
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };
 
 export const deletePlatformReviewAdmin = async (id) => {
-    const response = await fetch(`${API_URL}/admin/platform-reviews/${id}`, {
+    const { response, data } = await apiFetch(`/admin/platform-reviews/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders(),
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };
 
 export const getUserNotifications = async () => {
-    const response = await fetch(`${API_URL}/users/notifications`, {
+    const { response, data } = await apiFetch('/users/notifications', {
         headers: getAuthHeaders(),
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };
 
 export const deleteNotification = async (notifId) => {
-    const response = await fetch(`${API_URL}/users/notifications/${notifId}`, {
+    const { response, data } = await apiFetch(`/users/notifications/${notifId}`, {
         method: 'DELETE',
         headers: getAuthHeaders(),
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };
 
 export const getProfile = async () => {
-    const response = await fetch(`${API_URL}/users/profile`, {
+    const { response, data } = await apiFetch('/users/profile', {
         headers: getAuthHeaders(),
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur récupération du profil");
     return data;
 };
 
 export const getTeacherById = async (id) => {
-    const response = await fetch(`${API_URL}/teachers/${id}`);
-    const data = await response.json();
+    const { response, data } = await apiFetch(`/teachers/${id}`);
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };
 
 export const getTeacherReviews = async (teacherId) => {
-    const response = await fetch(`${API_URL}/teachers/${teacherId}/reviews`);
-    const data = await response.json();
+    const { response, data } = await apiFetch(`/teachers/${teacherId}/reviews`);
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };
 
 export const addReview = async (teacherId, reviewData) => {
-    const response = await fetch(`${API_URL}/teachers/${teacherId}/review`, {
+    const { response, data } = await apiFetch(`/teachers/${teacherId}/review`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(reviewData)
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };
 
 export const checkContractStatus = async (teacherId) => {
-    const response = await fetch(`${API_URL}/contracts/check/${teacherId}`, {
+    const { response, data } = await apiFetch(`/contracts/check/${teacherId}`, {
         headers: getAuthHeaders(),
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };
 
 // --- MESSAGERIE ---
 export const getContacts = async () => {
-    const response = await fetch(`${API_URL}/messages/contacts`, {
+    const { response, data } = await apiFetch('/messages/contacts', {
         headers: getAuthHeaders(),
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };
 
 export const getMessages = async (userId) => {
-    const response = await fetch(`${API_URL}/messages/${userId}`, {
+    const { response, data } = await apiFetch(`/messages/${userId}`, {
         headers: getAuthHeaders(),
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };
 
 export const sendMessage = async (receiverId, content) => {
-    const response = await fetch(`${API_URL}/messages`, {
+    const { response, data } = await apiFetch('/messages', {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ receiverId, content })
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };
 
 export const getUnreadCount = async () => {
-    const response = await fetch(`${API_URL}/messages/unread`, {
+    const { response, data } = await apiFetch('/messages/unread', {
         headers: getAuthHeaders(),
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };
 
 export const sendGlobalMessageAdmin = async (message) => {
-    const response = await fetch(`${API_URL}/admin/global-message`, {
+    const { response, data } = await apiFetch('/admin/global-message', {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ message })
     });
-    const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };

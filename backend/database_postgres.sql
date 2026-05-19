@@ -58,13 +58,8 @@ CREATE TABLE IF NOT EXISTS reviews (
     UNIQUE (teacher_id, author_id) -- Un parent ne peut laisser qu'un seul avis par enseignant
 );
 
--- Créer l'admin par défaut (mot de passe: sangmah)
-INSERT INTO users (name, email, phone, city, password_hash, role) 
-VALUES ('Administrateur', 'admin@alloprof.ci', '0000000000', 'Admin', '$2b$10$MoSARlQC9hjQYpg9AjUM2uTHlArymaB25.dLwHV3pzvCAyvfk9tMy', 'admin')
-ON CONFLICT (phone) DO UPDATE SET
-    email = EXCLUDED.email,
-    password_hash = EXCLUDED.password_hash,
-    role = 'admin';
+-- Le compte admin est cree via les variables d'environnement ADMIN_*
+-- et le script: npm run seed:admin
 
 -- Table des enseignants
 CREATE TABLE IF NOT EXISTS teachers (
