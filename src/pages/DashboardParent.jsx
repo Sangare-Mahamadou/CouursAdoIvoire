@@ -95,7 +95,7 @@ export default function DashboardParent() {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '2px solid var(--color-border)', paddingBottom: '1rem' }}>
+      <div className="dashboard-tabs">
         <button onClick={() => setActiveTab('dashboard')} className={`btn ${activeTab === 'dashboard' ? 'btn-primary' : 'btn-outline'}`}>
           Tableau de Bord
         </button>
@@ -115,7 +115,7 @@ export default function DashboardParent() {
 
           <div className="card glass">
         <h2 style={{ marginBottom: '1.5rem', color: 'var(--color-primary)' }}>Mes Demandes & Contrats en cours</h2>
-        <div style={{ overflowX: 'auto' }}>
+        <div className="table-scroll">
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid var(--color-border)' }}>

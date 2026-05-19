@@ -75,7 +75,7 @@ CouursAdoIvoire/
 │   ├── routes/
 │   ├── utils/
 │   ├── database_postgres.sql
-│   ├── migrations.sql
+│   ├── .env.example
 │   └── server.js
 ├── public/
 ├── src/
@@ -115,7 +115,7 @@ BLOB_READ_WRITE_TOKEN="votre_token_vercel_blob"
 JWT_SECRET="votre_secret_jwt"
 ```
 
-Le fichier `.env` ne doit pas être publié sur GitHub, car il contient les accès à la base de données et aux services externes.
+Le fichier `.env` ne doit pas être publié sur GitHub, car il contient les accès à la base de données et aux services externes. Utilisez `backend/.env.example` comme modèle.
 
 ## Base de données
 

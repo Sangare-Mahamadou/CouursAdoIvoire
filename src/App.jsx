@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -8,14 +8,18 @@ import Register from './pages/Register';
 import DashboardParent from './pages/DashboardParent';
 import DashboardTeacher from './pages/DashboardTeacher';
 import DashboardAdmin from './pages/DashboardAdmin';
+import ProtectedRoute from './components/ProtectedRoute';
 import { Toaster } from 'react-hot-toast';
 import './App.css';
 import TeacherProfile from './pages/TeacherProfile';
 
-function App() {
+function AppLayout() {
+  const location = useLocation();
+  const isAdminArea = location.pathname.startsWith('/admin');
+
   return (
-    <Router>
-      <Navbar />
+    <>
+      {!isAdminArea && <Navbar />}
       <main style={{ flex: '1', display: 'flex', flexDirection: 'column' }}>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -23,12 +27,13 @@ function App() {
           <Route path="/teacher/:id" element={<TeacherProfile />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/dashboard/parent" element={<DashboardParent />} />
-          <Route path="/dashboard/teacher" element={<DashboardTeacher />} />
-          <Route path="/dashboard/admin" element={<DashboardAdmin />} />
+          <Route path="/dashboard/parent" element={<ProtectedRoute allowedRoles={['parent']}><DashboardParent /></ProtectedRoute>} />
+          <Route path="/dashboard/teacher" element={<ProtectedRoute allowedRoles={['teacher']}><DashboardTeacher /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><DashboardAdmin /></ProtectedRoute>} />
+          <Route path="/dashboard/admin" element={<Navigate to="/admin" replace />} />
         </Routes>
       </main>
-      <Footer />
+      {!isAdminArea && <Footer />}
       <Toaster 
         position="top-center"
         reverseOrder={false}
@@ -40,6 +45,14 @@ function App() {
           },
         }}
       />
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppLayout />
     </Router>
   );
 }

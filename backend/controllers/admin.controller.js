@@ -1,5 +1,4 @@
 const pool = require('../config/db');
-const { sendEmail } = require('../utils/mailer');
 
 // Récupérer tous les utilisateurs
 exports.getAllUsers = async (req, res) => {
@@ -30,6 +29,14 @@ exports.deleteUser = async (req, res) => {
         }
 
         const userId = req.params.id;
+
+        const { rows: targets } = await pool.query('SELECT role FROM users WHERE id = $1', [userId]);
+        if (targets.length === 0) {
+            return res.status(404).json({ message: "Utilisateur introuvable." });
+        }
+        if (targets[0].role === 'admin') {
+            return res.status(403).json({ message: "Impossible de supprimer un compte administrateur depuis cette route." });
+        }
 
         await pool.query('DELETE FROM users WHERE id = $1', [userId]);
 

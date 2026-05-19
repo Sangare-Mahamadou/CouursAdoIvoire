@@ -3,9 +3,16 @@ const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
 const { put } = require('@vercel/blob');
 
+const allowedRoles = ['parent', 'teacher'];
+
 exports.register = async (req, res) => {
     try {
         const { name, email, phone, city, password, role, diploma_level, subjects, description, availability_days } = req.body;
+        const requestedRole = typeof role === 'string' ? role.trim().toLowerCase() : '';
+
+        if (!allowedRoles.includes(requestedRole)) {
+            return res.status(403).json({ message: "Rôle non autorisé" });
+        }
 
         // 1. Vérifier si l'utilisateur existe déjà
         const { rows: existingUsers } = await pool.query('SELECT id FROM users WHERE phone = $1 OR email = $2', [phone, email]);
@@ -20,12 +27,12 @@ exports.register = async (req, res) => {
         // 3. Insérer dans la table "users"
         const { rows: result } = await pool.query(
             'INSERT INTO users (name, email, phone, city, password_hash, role) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-            [name, email, phone, city, hashedPassword, role]
+            [name, email, phone, city, hashedPassword, requestedRole]
         );
         const newUserId = result[0].id;
 
         // 4. Si c'est un enseignant, gérer l'upload et insérer dans la table profil
-        if (role === 'teacher') {
+        if (requestedRole === 'teacher') {
             if (!req.file) {
                 return res.status(400).json({ message: "Une photo de profil est obligatoire pour les enseignants." });
             }
@@ -74,7 +81,7 @@ exports.login = async (req, res) => {
 
         // 3. Créer le Token JWT
         const token = jwt.sign(
-            { id: user.id, role: user.role, name: user.name, email: user.email },
+            { id: user.id },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );

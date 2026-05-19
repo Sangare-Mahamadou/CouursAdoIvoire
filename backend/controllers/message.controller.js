@@ -1,5 +1,29 @@
 const pool = require('../config/db');
 
+const canTalkTo = async (user, otherUserId) => {
+    if (String(user.id) === String(otherUserId)) return false;
+
+    const { rows: receivers } = await pool.query(
+        'SELECT id, role FROM users WHERE id = $1',
+        [otherUserId]
+    );
+    if (receivers.length === 0) return false;
+
+    const receiver = receivers[0];
+    if (user.role === 'admin') return receiver.role !== 'admin';
+    if (receiver.role === 'admin') return false;
+
+    const { rows: contracts } = await pool.query(
+        `SELECT id FROM contracts
+         WHERE ((parent_id = $1 AND teacher_id = $2) OR (parent_id = $2 AND teacher_id = $1))
+         AND status IN ('pending', 'active', 'completed')
+         LIMIT 1`,
+        [user.id, otherUserId]
+    );
+
+    return contracts.length > 0;
+};
+
 exports.sendMessage = async (req, res) => {
     try {
         const senderId = req.user.id;
@@ -7,6 +31,9 @@ exports.sendMessage = async (req, res) => {
 
         if (!receiverId || !content) {
             return res.status(400).json({ message: "Le destinataire et le contenu sont requis." });
+        }
+        if (!(await canTalkTo(req.user, receiverId))) {
+            return res.status(403).json({ message: "Conversation non autorisée." });
         }
 
         const { rows } = await pool.query(
@@ -25,6 +52,10 @@ exports.getMessages = async (req, res) => {
     try {
         const userId = req.user.id;
         const otherUserId = req.params.userId;
+
+        if (!(await canTalkTo(req.user, otherUserId))) {
+            return res.status(403).json({ message: "Conversation non autorisée." });
+        }
 
         const { rows } = await pool.query(`
             SELECT * FROM messages

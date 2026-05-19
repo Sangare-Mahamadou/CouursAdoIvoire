@@ -53,6 +53,10 @@ export default function Register() {
     setIsLoading(true);
 
     try {
+      if (!['parent', 'teacher'].includes(role)) {
+        throw new Error("Rôle non autorisé");
+      }
+
       // Validation de l'email
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
@@ -106,7 +110,7 @@ export default function Register() {
     <div className="auth-container animate-fade-in">
       <div className="card auth-card glass">
         <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '1.8rem' }}>Créer un compte</h2>
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+        <div className="stackable-actions" style={{ marginBottom: '2rem' }}>
           <button 
             className={`btn ${role === 'parent' ? 'btn-primary' : 'btn-outline'}`} 
             style={{ flex: 1 }} 
@@ -132,7 +136,7 @@ export default function Register() {
         )}
 
         <form onSubmit={handleRegister}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="register-grid">
             <div className="form-group">
               <label>Nom et Prénoms</label>
               <input type="text" placeholder="Ex: Kouamé Jean" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
@@ -159,7 +163,7 @@ export default function Register() {
                 Matières enseignées
               </label>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', margin: '1rem 0' }}>
+              <div className="register-subjects-grid">
                 {AVAILABLE_SUBJECTS.map((sub, idx) => {
                   const isChecked = formData.subjects.some(s => s.name === sub);
                   const subjectObj = formData.subjects.find(s => s.name === sub);

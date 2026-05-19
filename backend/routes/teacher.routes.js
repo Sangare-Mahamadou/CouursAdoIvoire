@@ -8,6 +8,7 @@ const contractController = require('../controllers/contract.controller');
 router.get('/', teacherController.getAllTeachers);
 
 // GET /api/teachers/:id - Récupérer un enseignant par ID
+router.get('/:id/reviews', teacherController.getTeacherReviews);
 router.get('/:id', teacherController.getTeacherById);
 
 // POST /api/teachers/:id/review - Parent ajoute un avis

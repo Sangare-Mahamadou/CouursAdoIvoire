@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCurrentUser, logoutUser, getAllAdminContracts, deleteContractByAdmin, getPlatformReviews, deletePlatformReviewAdmin, sendGlobalMessageAdmin } from '../services/api';
+import { logoutUser, getAllAdminContracts, deleteContractByAdmin, getPlatformReviews, deletePlatformReviewAdmin, sendGlobalMessageAdmin, getAdminUsers, deleteAdminUser } from '../services/api';
 import ConfirmDialog from '../components/ConfirmDialog';
 import toast from 'react-hot-toast';
 
@@ -15,21 +15,8 @@ export default function DashboardAdmin() {
   const [motiveModal, setMotiveModal] = useState({ isOpen: false, contractId: null, motive: '' });
   const [globalMessageModal, setGlobalMessageModal] = useState({ isOpen: false, message: '' });
   
-  let envUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-  if (envUrl && !envUrl.endsWith('/api')) {
-      envUrl = envUrl.endsWith('/') ? `${envUrl}api` : `${envUrl}/api`;
-  }
-  const API_URL = envUrl;
-
   useEffect(() => {
     // Vérification stricte de l'administrateur
-    const user = getCurrentUser();
-    if (!user || user.role !== 'admin') {
-      logoutUser();
-      navigate('/login');
-      return;
-    }
-    
     fetchData();
   }, [navigate]);
 
@@ -37,12 +24,8 @@ export default function DashboardAdmin() {
     setIsLoading(true);
     try {
       // Récupération des utilisateurs
-      const resUsers = await fetch(`${API_URL}/admin/users`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
-      if (resUsers.ok) {
-        setUsers(await resUsers.json());
-      }
+      const dataUsers = await getAdminUsers();
+      setUsers(dataUsers);
 
       // Récupération des contrats
       const dataContracts = await getAllAdminContracts();
@@ -73,15 +56,10 @@ export default function DashboardAdmin() {
 
   const executeDeleteUser = async (id) => {
     try {
-      const response = await fetch(`${API_URL}/admin/users/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
-      if (response.ok) {
+      await deleteAdminUser(id);
+      if (deleteAdminUser) {
         toast.success('Utilisateur banni avec succès.');
         fetchData();
-      } else {
-        toast.error("Erreur lors du bannissement.");
       }
     } catch (error) {
       console.error(error);
@@ -126,7 +104,7 @@ export default function DashboardAdmin() {
           await deletePlatformReviewAdmin(id);
           toast.success("Avis supprimé.");
           fetchData();
-        } catch (error) {
+        } catch {
           toast.error("Erreur de suppression");
         } finally {
           setConfirmAction(null);
@@ -168,12 +146,12 @@ export default function DashboardAdmin() {
         />
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div className="stackable-actions" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
             <h1 className="page-title" style={{ marginBottom: '0.5rem' }}>Espace Administrateur</h1>
             <p style={{ color: 'var(--color-text-light)' }}>Vue globale et modération de la plateforme AlloProf CI.</p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div className="stackable-actions">
             <button onClick={() => setGlobalMessageModal({ isOpen: true, message: '' })} className="btn btn-primary">
                 Envoyer un message global
             </button>
@@ -184,7 +162,7 @@ export default function DashboardAdmin() {
       </div>
 
       {/* Navigation des onglets */}
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '2px solid var(--color-border)', paddingBottom: '1rem', overflowX: 'auto' }}>
+      <div className="dashboard-tabs">
         <button onClick={() => setActiveTab('parents')} className={`btn ${activeTab === 'parents' ? 'btn-primary' : 'btn-outline'}`}>
           Parents ({parents.length})
         </button>
@@ -210,7 +188,7 @@ export default function DashboardAdmin() {
           {activeTab === 'parents' && (
             <div className="card glass animate-fade-in">
               <h2 style={{ marginBottom: '1.5rem', color: 'var(--color-primary)' }}>Liste des Parents d'élèves</h2>
-              <div style={{ overflowX: 'auto' }}>
+              <div className="table-scroll">
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                   <thead>
                     <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
@@ -249,7 +227,7 @@ export default function DashboardAdmin() {
           {activeTab === 'teachers' && (
             <div className="card glass animate-fade-in">
               <h2 style={{ marginBottom: '1.5rem', color: 'var(--color-primary)' }}>Liste des Enseignants</h2>
-              <div style={{ overflowX: 'auto' }}>
+              <div className="table-scroll">
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                   <thead>
                     <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
@@ -288,7 +266,7 @@ export default function DashboardAdmin() {
           {activeTab === 'contracts' && (
             <div className="card glass animate-fade-in">
               <h2 style={{ marginBottom: '1.5rem', color: 'var(--color-primary)' }}>Toutes les Relations (Contrats)</h2>
-              <div style={{ overflowX: 'auto' }}>
+              <div className="table-scroll">
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                   <thead>
                     <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
@@ -329,7 +307,7 @@ export default function DashboardAdmin() {
           {activeTab === 'reviews' && (
             <div className="card glass animate-fade-in">
               <h2 style={{ marginBottom: '1.5rem', color: 'var(--color-primary)' }}>Avis sur la Plateforme</h2>
-              <div style={{ overflowX: 'auto' }}>
+              <div className="table-scroll">
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                   <thead>
                     <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
@@ -408,7 +386,7 @@ export default function DashboardAdmin() {
                     placeholder="Motif de la suppression..."
                 />
               </div>
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+              <div className="stackable-actions" style={{ marginTop: '1.5rem' }}>
                   <button onClick={confirmDeleteContract} className="btn" style={{ flex: 1, backgroundColor: '#ef4444', color: 'white' }}>Supprimer</button>
                   <button onClick={() => setMotiveModal({ isOpen: false, contractId: null, motive: '' })} className="btn btn-outline">Annuler</button>
               </div>
@@ -434,7 +412,7 @@ export default function DashboardAdmin() {
                         placeholder="Votre message global..."
                     />
                   </div>
-                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                  <div className="stackable-actions" style={{ marginTop: '1.5rem' }}>
                       <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>Envoyer à tous</button>
                       <button type="button" onClick={() => setGlobalMessageModal({ isOpen: false, message: '' })} className="btn btn-outline">Annuler</button>
                   </div>

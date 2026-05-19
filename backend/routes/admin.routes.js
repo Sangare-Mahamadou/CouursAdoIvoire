@@ -2,13 +2,16 @@ const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/admin.controller');
 const authMiddleware = require('../middlewares/authMiddleware');
+const { requireAdmin } = require('../middlewares/roleMiddleware');
 
-router.get('/users', authMiddleware, adminController.getAllUsers);
-router.delete('/users/:id', authMiddleware, adminController.deleteUser);
-router.get('/contracts', authMiddleware, adminController.getAllContracts);
+router.use(authMiddleware, requireAdmin);
+
+router.get('/users', adminController.getAllUsers);
+router.delete('/users/:id', adminController.deleteUser);
+router.get('/contracts', adminController.getAllContracts);
 // DELETE /api/admin/contracts/:id - Supprimer un contrat
-router.delete('/contracts/:id', authMiddleware, adminController.deleteContract);
-router.delete('/platform-reviews/:id', authMiddleware, adminController.deletePlatformReview);
-router.post('/global-message', authMiddleware, adminController.sendGlobalMessage);
+router.delete('/contracts/:id', adminController.deleteContract);
+router.delete('/platform-reviews/:id', adminController.deletePlatformReview);
+router.post('/global-message', adminController.sendGlobalMessage);
 
 module.exports = router;

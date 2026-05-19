@@ -3,6 +3,13 @@ if (envUrl && !envUrl.endsWith('/api')) {
     envUrl = envUrl.endsWith('/') ? `${envUrl}api` : `${envUrl}/api`;
 }
 const API_URL = envUrl;
+let currentUser = null;
+
+const notifyAuthChange = () => {
+    window.dispatchEvent(new Event('auth-changed'));
+};
+
+export const hasAuthToken = () => Boolean(localStorage.getItem('token'));
 
 export const registerUser = async (userData) => {
     const isFormData = userData instanceof FormData;
@@ -29,24 +36,38 @@ export const loginUser = async (credentials) => {
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Erreur de connexion");
     
-    // Sauvegarde en session locale
+    // Le navigateur conserve uniquement le token. Le role est relu depuis l'API.
+    localStorage.removeItem('user');
     localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    return data;
+    currentUser = data.user || await getProfile();
+    notifyAuthChange();
+    return { ...data, user: currentUser };
 };
 
 export const logoutUser = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    currentUser = null;
+    notifyAuthChange();
 };
 
 export const getCurrentUser = () => {
-    const userStr = localStorage.getItem('user');
-    try {
-        return userStr ? JSON.parse(userStr) : null;
-    } catch {
-        localStorage.removeItem('user');
+    return currentUser;
+};
+
+export const loadCurrentUser = async () => {
+    if (!hasAuthToken()) {
+        currentUser = null;
         return null;
+    }
+
+    try {
+        currentUser = await getProfile();
+        notifyAuthChange();
+        return currentUser;
+    } catch (error) {
+        logoutUser();
+        throw error;
     }
 };
 
@@ -126,6 +147,25 @@ export const updateProfile = async (profileData) => {
 
 export const getAllAdminContracts = async () => {
     const response = await fetch(`${API_URL}/admin/contracts`, {
+        headers: getAuthHeaders(),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur");
+    return data;
+};
+
+export const getAdminUsers = async () => {
+    const response = await fetch(`${API_URL}/admin/users`, {
+        headers: getAuthHeaders(),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Erreur");
+    return data;
+};
+
+export const deleteAdminUser = async (id) => {
+    const response = await fetch(`${API_URL}/admin/users/${id}`, {
+        method: 'DELETE',
         headers: getAuthHeaders(),
     });
     const data = await response.json();

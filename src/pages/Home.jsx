@@ -39,7 +39,7 @@ export default function Home() {
       setComment('');
       toast.success('Merci pour votre avis !');
       fetchReviews();
-    } catch (error) {
+    } catch {
       toast.error("Veuillez vous connecter pour laisser un avis, ou une erreur s'est produite.");
     } finally {
       setIsSubmitting(false);

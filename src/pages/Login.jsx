@@ -27,7 +27,7 @@ export default function Login() {
       const data = await loginUser({ identifier, password });
       // Redirection après succès
       if (data.user.role === 'admin') {
-        navigate('/dashboard/admin');
+        navigate('/admin');
       } else if (data.user.role === 'parent') {
         navigate('/dashboard/parent');
       } else {

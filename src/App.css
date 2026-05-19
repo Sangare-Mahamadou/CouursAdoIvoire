@@ -307,6 +307,17 @@
   color: var(--color-text-light);
 }
 
+.register-grid,
+.register-subjects-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.register-subjects-grid {
+  margin: 1rem 0;
+}
+
 .profile-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -465,4 +476,249 @@
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 1.5rem;
+}
+
+/* Responsive hardening */
+html,
+body,
+#root {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+table {
+  min-width: 720px;
+}
+
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.stackable-actions,
+.dashboard-tabs {
+  display: flex;
+  gap: 1rem;
+}
+
+.dashboard-tabs {
+  margin-bottom: 2rem;
+  border-bottom: 2px solid var(--color-border);
+  padding-bottom: 1rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dashboard-tabs .btn,
+.stackable-actions .btn {
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    padding: 4rem 0;
+  }
+
+  .hero h1 {
+    font-size: 2.6rem;
+  }
+
+  .grid-cols-3 {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+
+  .dashboard-layout {
+    padding: 2rem 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 0 1rem;
+  }
+
+  .navbar {
+    padding: 0.75rem 0;
+  }
+
+  .nav-logo {
+    font-size: 1.25rem;
+  }
+
+  .nav-links {
+    width: 100%;
+  }
+
+  .nav-links .btn {
+    flex: 1 1 140px;
+    min-width: 0;
+    padding: 0.65rem 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .hero {
+    padding: 3rem 0;
+  }
+
+  .hero h1 {
+    font-size: 2rem;
+  }
+
+  .hero p {
+    font-size: 1rem;
+  }
+
+  .hero-buttons,
+  .form-actions,
+  .confirm-actions,
+  .stackable-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero-buttons .btn,
+  .form-actions .btn,
+  .confirm-actions .btn,
+  .stackable-actions .btn {
+    width: 100%;
+  }
+
+  .card {
+    padding: 1rem;
+    border-radius: var(--radius-md);
+  }
+
+  .auth-container {
+    width: 100%;
+    margin: 1rem auto;
+    padding: 0 1rem;
+  }
+
+  .auth-card {
+    padding: 1rem;
+  }
+
+  .auth-card h2 {
+    font-size: 1.45rem !important;
+  }
+
+  .register-grid,
+  .register-subjects-grid {
+    grid-template-columns: 1fr;
+  }
+
+  div[style*="grid-template-columns: 1fr 1fr"],
+  div[style*="gridTemplateColumns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .teacher-header,
+  .teacher-card > div:last-child,
+  .teacher-card [style*="justify-content: space-between"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .teacher-card .btn {
+    width: 100%;
+  }
+
+  .badge {
+    width: fit-content;
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .dashboard-tabs {
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .dashboard-tabs .btn {
+    flex: 0 0 auto;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.9rem;
+  }
+
+  .page-title {
+    font-size: 1.25rem;
+    display: block;
+  }
+
+  table {
+    min-width: 680px;
+    font-size: 0.875rem;
+  }
+
+  th,
+  td {
+    padding: 0.75rem !important;
+  }
+
+  .chat-layout {
+    height: min(760px, calc(100vh - 140px));
+  }
+
+  .chat-main form {
+    align-items: center;
+  }
+
+  .chat-main form input {
+    min-width: 0;
+  }
+
+  .modal-backdrop,
+  .platform-feedback-modal,
+  div[style*="position: fixed"][style*="rgba(0,0,0,0.5)"] {
+    padding: 1rem !important;
+    align-items: flex-start !important;
+    overflow-y: auto !important;
+  }
+
+  .modal-panel,
+  .platform-feedback-modal .modal-panel,
+  div[style*="max-width: 400px"],
+  div[style*="max-width: 500px"] {
+    max-width: 100% !important;
+    max-height: calc(100vh - 2rem) !important;
+    overflow-y: auto !important;
+    padding: 1rem !important;
+  }
+
+  .platform-feedback-fab {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+  }
+
+  .platform-feedback-fab .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .btn {
+    padding: 0.65rem 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .nav-links .btn {
+    flex-basis: 100%;
+  }
+
+  .hero h1 {
+    font-size: 1.75rem;
+  }
+
+  .custom-subject-row {
+    grid-template-columns: 1fr;
+  }
 }

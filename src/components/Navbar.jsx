@@ -1,11 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BookOpen, LogOut } from 'lucide-react';
-import { getCurrentUser, logoutUser } from '../services/api';
+import { getCurrentUser, hasAuthToken, loadCurrentUser, logoutUser } from '../services/api';
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const user = getCurrentUser();
+  const [user, setUser] = useState(getCurrentUser());
+
+  useEffect(() => {
+    const refreshUser = () => setUser(getCurrentUser());
+    window.addEventListener('auth-changed', refreshUser);
+
+    if (hasAuthToken() && !getCurrentUser()) {
+      loadCurrentUser().catch(() => {});
+    }
+
+    return () => window.removeEventListener('auth-changed', refreshUser);
+  }, []);
 
   const handleLogout = () => {
     logoutUser();
@@ -29,7 +40,7 @@ export default function Navbar() {
           
           {user ? (
             <>
-              <Link to={`/dashboard/${user.role}`} className="btn btn-primary">
+              <Link to={user.role === 'admin' ? '/admin' : `/dashboard/${user.role}`} className="btn btn-primary">
                 {user.role === 'admin' ? 'Panneau Admin' : `Mon Espace (${user.name.split(' ')[0]})`}
               </Link>
               <button 

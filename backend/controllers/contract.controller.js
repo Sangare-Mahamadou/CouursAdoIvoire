@@ -10,6 +10,14 @@ exports.createContract = async (req, res) => {
             return res.status(403).json({ message: "Seul un parent peut faire une demande." });
         }
 
+        const { rows: teachers } = await pool.query(
+            "SELECT id, email, name FROM users WHERE id = $1 AND role = 'teacher'",
+            [teacher_id]
+        );
+        if (teachers.length === 0) {
+            return res.status(400).json({ message: "Enseignant invalide." });
+        }
+
         const { rows: recentContracts } = await pool.query(
             `SELECT id FROM contracts
              WHERE parent_id = $1 AND teacher_id = $2
@@ -42,7 +50,6 @@ exports.createContract = async (req, res) => {
             );
         }
 
-        const { rows: teachers } = await pool.query('SELECT email, name FROM users WHERE id = $1', [teacher_id]);
         if (teachers.length > 0) {
             const teacher = teachers[0];
             sendEmail(
@@ -108,6 +115,9 @@ exports.updateContractStatus = async (req, res) => {
         if (req.user.role !== 'teacher') {
             return res.status(403).json({ message: "Seul l'enseignant peut modifier le statut." });
         }
+        if (!['active', 'rejected'].includes(status)) {
+            return res.status(400).json({ message: "Statut non autorisé." });
+        }
 
         const { rows: contracts } = await pool.query(
             'SELECT c.id, c.subject, u.email, u.name as parent_name FROM contracts c JOIN users u ON c.parent_id = u.id WHERE c.id = $1 AND c.teacher_id = $2',
@@ -144,6 +154,9 @@ exports.rateTeacher = async (req, res) => {
         if (req.user.role !== 'parent') {
             return res.status(403).json({ message: "Seul un parent peut noter." });
         }
+        if (!Number.isInteger(Number(rating)) || Number(rating) < 1 || Number(rating) > 5) {
+            return res.status(400).json({ message: "Note invalide." });
+        }
 
         const { rows: contracts } = await pool.query(
             'SELECT teacher_id, status FROM contracts WHERE id = $1 AND parent_id = $2',
@@ -154,7 +167,6 @@ exports.rateTeacher = async (req, res) => {
             return res.status(400).json({ message: "Contrat introuvable ou vous ne pouvez pas le noter." });
         }
 
-        const teacherId = contracts[0].teacher_id;
         
         // La logique de notation est maintenant gérée par les avis (addReview)
         // On marque juste le contrat comme terminé
@@ -175,6 +187,9 @@ exports.addReview = async (req, res) => {
 
         if (req.user.role !== 'parent') {
             return res.status(403).json({ message: "Seul un parent peut laisser un avis." });
+        }
+        if (!Number.isInteger(Number(rating)) || Number(rating) < 1 || Number(rating) > 5) {
+            return res.status(400).json({ message: "Note invalide." });
         }
 
         // Optionnel : vérifier si le parent a déjà eu un contrat avec ce prof
@@ -222,6 +237,10 @@ exports.checkContractStatus = async (req, res) => {
     try {
         const teacherId = req.params.teacherId;
         const parentId = req.user.id;
+
+        if (req.user.role !== 'parent') {
+            return res.status(403).json({ message: "Seul un parent peut vérifier un contrat." });
+        }
 
         const { rows } = await pool.query(
             "SELECT status FROM contracts WHERE parent_id = $1 AND teacher_id = $2 ORDER BY created_at DESC",

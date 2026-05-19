@@ -92,7 +92,7 @@ export default function DashboardTeacher() {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '2px solid var(--color-border)', paddingBottom: '1rem' }}>
+      <div className="dashboard-tabs">
         <button onClick={() => setActiveTab('dashboard')} className={`btn ${activeTab === 'dashboard' ? 'btn-primary' : 'btn-outline'}`}>
           Tableau de Bord
         </button>
@@ -119,7 +119,7 @@ export default function DashboardTeacher() {
 
       <div className="card glass">
         <h2 style={{ marginBottom: '1.5rem', color: 'var(--color-primary)' }}>Mes Demandes & Contrats</h2>
-        <div style={{ overflowX: 'auto' }}>
+        <div className="table-scroll">
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
@@ -198,7 +198,7 @@ export default function DashboardTeacher() {
                                </ul>
                              </div>
                              
-                             <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                             <div className="stackable-actions" style={{ marginTop: '1.5rem', justifyContent: 'center' }}>
                                 <button onClick={() => handleStatusChange(contract.id, 'active')} className="btn btn-primary" style={{ padding: '0.5rem 1.5rem' }}>Accepter le contrat</button>
                                 <button onClick={() => handleStatusChange(contract.id, 'rejected')} className="btn btn-outline" style={{ padding: '0.5rem 1.5rem', borderColor: '#ef4444', color: '#ef4444' }}>Refuser</button>
                              </div>

@@ -45,7 +45,7 @@ export default function TeacherProfile() {
     };
 
     fetchTeacherData();
-  }, [id]);
+  }, [id, user]);
 
   if (isLoading) {
     return <div className="container" style={{ textAlign: 'center', padding: '4rem 0' }}>Chargement du profil...</div>;

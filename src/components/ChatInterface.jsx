@@ -61,7 +61,7 @@ export default function ChatInterface() {
             const sentMsg = await sendMessage(selectedContact.id, newMessage);
             setMessages(prev => [...prev, sentMsg]);
             setNewMessage('');
-        } catch (error) {
+        } catch {
             toast.error("Erreur d'envoi du message");
         }
     };
