@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const { sendEmail } = require('../utils/mailer');
 
 // Récupérer tous les utilisateurs
 exports.getAllUsers = async (req, res) => {
@@ -103,6 +104,23 @@ exports.deleteContract = async (req, res) => {
             // Notifier via la messagerie privée (Chat Interne)
             await pool.query('INSERT INTO messages (sender_id, receiver_id, content) VALUES ($1, $2, $3)', [adminId, contract.parent_id, messageParent]);
             await pool.query('INSERT INTO messages (sender_id, receiver_id, content) VALUES ($1, $2, $3)', [adminId, contract.teacher_id, messageTeacher]);
+
+            // Notifier via le système de notifications (affichage sur le tableau de bord avec la croix)
+            await pool.query('INSERT INTO notifications (user_id, message) VALUES ($1, $2)', [contract.parent_id, messageParent]);
+            await pool.query('INSERT INTO notifications (user_id, message) VALUES ($1, $2)', [contract.teacher_id, messageTeacher]);
+
+            // Envoyer un e-mail aux deux parties
+            sendEmail(
+                contract.parent_email,
+                'Annulation de contrat - AlloProf CI',
+                `Bonjour ${contract.parent_name},\n\n${messageParent}\n\nCordialement,\nL'équipe AlloProf CI`
+            ).catch(err => console.error("Erreur d'envoi d'e-mail:", err));
+
+            sendEmail(
+                contract.teacher_email,
+                'Annulation de contrat - AlloProf CI',
+                `Bonjour ${contract.teacher_name},\n\n${messageTeacher}\n\nCordialement,\nL'équipe AlloProf CI`
+            ).catch(err => console.error("Erreur d'envoi d'e-mail:", err));
         }
 
         await pool.query('DELETE FROM contracts WHERE id = $1', [contractId]);
