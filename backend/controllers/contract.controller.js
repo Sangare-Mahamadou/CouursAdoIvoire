@@ -55,7 +55,7 @@ exports.createContract = async (req, res) => {
             sendEmail(
                 teacher.email,
                 'Nouvelle demande de cours - AlloProf CI',
-                `Bonjour ${teacher.name},\n\nVous avez reçu une nouvelle demande de cours pour : ${requestedSubjects.join(', ')}.\nVeuillez vous connecter à votre espace pour la consulter et l'accepter ou la refuser.\n\nCordialement,\nL'équipe AlloProf CI`
+                `Bonjour ${teacher.name},\n\nVous avez reçu une nouvelle demande de cours pour : ${requestedSubjects.join(', ')}.\nVeuillez vous connecter à votre espace pour la consulter et l'accepter ou la refuser.`
             ).catch(err => console.error("Erreur d'envoi d'e-mail:", err));
         }
 
@@ -135,7 +135,7 @@ exports.updateContractStatus = async (req, res) => {
         sendEmail(
             contract.email,
             `Mise à jour de votre demande - AlloProf CI`,
-            `Bonjour ${contract.parent_name},\n\nVotre demande de cours en ${contract.subject} a été ${statusText} par l'enseignant.\n\nConnectez-vous à votre espace pour plus de détails.\n\nCordialement,\nL'équipe AlloProf CI`
+            `Bonjour ${contract.parent_name},\n\nVotre demande de cours en ${contract.subject} a été ${statusText} par l'enseignant.\n\nConnectez-vous à votre espace pour plus de détails.`
         ).catch(err => console.error("Erreur d'envoi d'e-mail:", err));
 
         res.json({ message: `Le statut a été mis à jour avec succès : ${status}` });

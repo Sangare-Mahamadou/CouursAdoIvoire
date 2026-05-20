@@ -126,7 +126,10 @@ exports.getUnreadCount = async (req, res) => {
     try {
         const userId = req.user.id;
         const { rows } = await pool.query(
-            'SELECT COUNT(*) FROM messages WHERE receiver_id = $1 AND is_read = FALSE',
+            `SELECT COUNT(*) 
+             FROM messages m 
+             JOIN users u ON m.sender_id = u.id 
+             WHERE m.receiver_id = $1 AND m.is_read = FALSE AND u.role != 'admin'`,
             [userId]
         );
         res.json({ count: parseInt(rows[0].count) });

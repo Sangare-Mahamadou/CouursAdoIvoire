@@ -101,9 +101,7 @@ exports.deleteContract = async (req, res) => {
             const messageParent = `Votre contrat de cours en ${contract.subject} avec l'enseignant ${contract.teacher_name} a été annulé par l'administration. Motif: ${motive}`;
             const messageTeacher = `Le contrat de cours en ${contract.subject} avec le parent ${contract.parent_name} a été annulé par l'administration. Motif: ${motive}`;
 
-            // Notifier via la messagerie privée (Chat Interne)
-            await pool.query('INSERT INTO messages (sender_id, receiver_id, content) VALUES ($1, $2, $3)', [adminId, contract.parent_id, messageParent]);
-            await pool.query('INSERT INTO messages (sender_id, receiver_id, content) VALUES ($1, $2, $3)', [adminId, contract.teacher_id, messageTeacher]);
+            // (Retiré: L'insertion dans la messagerie privée a été supprimée pour éviter la fausse pastille rouge)
 
             // Notifier via le système de notifications (affichage sur le tableau de bord avec la croix)
             await pool.query('INSERT INTO notifications (user_id, message) VALUES ($1, $2)', [contract.parent_id, messageParent]);
@@ -113,13 +111,13 @@ exports.deleteContract = async (req, res) => {
             sendEmail(
                 contract.parent_email,
                 'Annulation de contrat - AlloProf CI',
-                `Bonjour ${contract.parent_name},\n\n${messageParent}\n\nCordialement,\nL'équipe AlloProf CI`
+                `Bonjour ${contract.parent_name},\n\n${messageParent}`
             ).catch(err => console.error("Erreur d'envoi d'e-mail:", err));
 
             sendEmail(
                 contract.teacher_email,
                 'Annulation de contrat - AlloProf CI',
-                `Bonjour ${contract.teacher_name},\n\n${messageTeacher}\n\nCordialement,\nL'équipe AlloProf CI`
+                `Bonjour ${contract.teacher_name},\n\n${messageTeacher}`
             ).catch(err => console.error("Erreur d'envoi d'e-mail:", err));
         }
 
