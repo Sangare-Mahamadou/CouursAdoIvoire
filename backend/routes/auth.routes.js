@@ -11,4 +11,10 @@ router.post('/register', upload.single('profile_picture'), authController.regist
 // Route : POST /api/auth/login
 router.post('/login', authController.login);
 
+// Route : POST /api/auth/forgot-password
+router.post('/forgot-password', authController.forgotPassword);
+
+// Route : POST /api/auth/verify-reset-code
+router.post('/verify-reset-code', authController.verifyResetCode);
+
 module.exports = router;

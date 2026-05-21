@@ -317,3 +317,31 @@ export const sendGlobalMessageAdmin = async (message) => {
     if (!response.ok) throw new Error(data.message || "Erreur");
     return data;
 };
+
+export const forgotPassword = async (email) => {
+    const { response, data } = await apiFetch('/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+    });
+    if (!response.ok) throw new Error(data.message || "Erreur lors de la demande de réinitialisation");
+    return data;
+};
+
+export const verifyResetCode = async (email, code, password, confirmPassword) => {
+    const { response, data } = await apiFetch('/auth/verify-reset-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code, password, confirmPassword })
+    });
+    if (!response.ok) throw new Error(data.message || "Erreur lors de la vérification du code");
+    
+    if (data.token) {
+        localStorage.removeItem('user');
+        localStorage.setItem('token', data.token);
+        currentUser = data.user || await getProfile();
+        notifyAuthChange();
+    }
+    
+    return { ...data, user: currentUser };
+};

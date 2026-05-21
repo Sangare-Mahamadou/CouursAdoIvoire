@@ -5,6 +5,8 @@ import Home from './pages/Home';
 import TeachersList from './pages/TeachersList';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import VerifyResetCode from './pages/VerifyResetCode';
 import DashboardParent from './pages/DashboardParent';
 import DashboardTeacher from './pages/DashboardTeacher';
 import DashboardAdmin from './pages/DashboardAdmin';
@@ -27,6 +29,8 @@ function AppLayout() {
           <Route path="/teacher/:id" element={<TeacherProfile />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/verify-reset-code" element={<VerifyResetCode />} />
           <Route path="/dashboard/parent" element={<ProtectedRoute allowedRoles={['parent']}><DashboardParent /></ProtectedRoute>} />
           <Route path="/dashboard/teacher" element={<ProtectedRoute allowedRoles={['teacher']}><DashboardTeacher /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><DashboardAdmin /></ProtectedRoute>} />
